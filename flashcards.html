@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Finley's Reading Club Flash Cards</title>
+	<style type="text/css" media="screen">
+        body { background-color: #f9f9f8; font-family:Helvetica,Arial }
+        #controls { width: 900px; margin: 0px auto; }
+        button { border: 1px solid #999; display: block; float: left; margin-right: 20px; height: 40px; width: 60px; background-color: #f9f9f9; font-size: 12pt; color: #666; }
+        button:hover { color: #000; border: 1px solid #000; background-color: #f9f9f0; }
+        #card { font-size:100pt; text-align: center; padding: 150px 0px; }
+        label { display: block; float: left; width: 150px; text-align: right; padding-right: 10px; color: #999; }
+        #instructions { color: #bbb; font-size:10pt; text-align:center; visibility:hidden; display:block; float:none; width:300px; margin:0px auto; }
+        span { display: block; float: left; width: 100px; font-style: bold; font-size: 20pt; color: #000; }
+        div.comment { font-size: 30px; }
+        img { margin: 0px auto; }
+        span.late1 { color: #600; }
+        span.late2 { color: #800; }
+        span.late3 { color: #a00; }
+        span.late4 { color: #c00; }
+        span.late5 { color: #e00; }
+	</style>
+	<script language="Javascript">
+		window.onload = function() {
+			var wordList = ['a', 'am', 'and', 'are', 'at', 'away', 'big', 'blue', 'boat', 'boy', 'boys', 
+							'but', 'can',  'come', 'comes', 'cookie', 'did', 'do', 'down', 'eat', 'father',
+							'find', 'for', 'fun', 'funny', 'get', 'girl', 'go', 'good', 'grandmother', 
+							'guess', 'has', 'have', 'help', 'here',  'his', 'house', 'how', 'I', 'in', 
+							'into', 'is', 'it', 'jump', 'like', 'little', 'look', 'looks', 'make', 'makes',
+							'man', 'me', 'mother', 'my', 'no', 'not', 'now', 'oh', 'on', 'one', 
+							'ones', 'orange', 'out', 'play', 'pretty', 'red', 'ride', 'run', 'said', 'school',
+							'see', 'sit', 'snow', 'so', 'something', 'spot', 'take', 'that', 'the', 'thing', 
+							'this', 'to', 'too', 'up', 'us', 'walk', 'want', 'wants', 'way', 'we', 'what',
+							'where', 'will', 'with', 'work', 'yellow', 'yes', 'you' ];
+			
+			var comments = [[1.0, "Great Job!", 'http://farm4.static.flickr.com/3095/3182421536_d0c4740f4b.jpg'], 
+							[1.25,"Almost There", "http://cuteoverload.files.wordpress.com/2009/05/possum_pinup_560.jpg?w=280&h=313"],
+							[1.5, "Pretty Good", 'http://cuteoverload.files.wordpress.com/2009/09/img_4205.jpg?w=280&h=372'], 
+							[2.0, "Keep Trying", 'http://cuteoverload.files.wordpress.com/2009/08/1249395817203.jpg?w=560&h=372'],
+							[20000,"Practice, Practice, Practice", "http://cuteoverload.files.wordpress.com/2009/06/article-1192276-054d437a000005dc-575_634x734.jpg?w=280&h=324"]];
+			
+			var wordIndex = 0;
+			var words;
+			var timer = null;
+			var startTime = 0;
+			var wordTime = 0;
+
+			function each(a,f) { for (var i=0,l=a.length;i<l;i++) f(a[i]); }
+			function el(id) { return document.getElementById(id); }
+
+			function start( evt ) {
+				el('start').blur();
+				el('start').style.visibility = 'hidden';
+				el('instructions').style.visibility = 'visible';
+
+				words = [];
+				each(wordList, function(word) { words.push(word); });
+				for ( var i=0,l=words.length; i < l; i++ ) {
+					var sindex = Math.floor(Math.random()*l);
+					var temp = words[sindex];
+					words[sindex] = words[i];
+					words[i] = temp;
+				}
+				wordIndex = 0;
+				timer = setInterval( updateClock, 100 );
+				startTime = wordTime = (new Date()).getTime();
+				updateClock();
+				nextWord();
+			}
+			
+			function lateClass(secs) {
+				return secs < .500 ? '' : ( secs < 2.5 ? 'late' + Math.floor(secs/.5) : 'late5' );
+			}
+			
+			function updateClock() {
+				var ms = (new Date()).getTime() - startTime;
+				el('totalTime').innerHTML = Math.floor(ms/1000) + '.' + Math.floor((ms/100) % 10);
+				ms = (new Date()).getTime() - wordTime;
+				el('wordTime').innerHTML = Math.floor(ms/1000) + '.' + Math.floor((ms/100) % 10);
+				el('wordTime').setAttribute('class', lateClass(ms/1000) );
+			}
+			
+			function nextWord() {
+				el('counter').innerHTML = ''+(words.length - wordIndex);
+				if ( wordIndex >= words.length ) {
+					end();
+					return;					
+				}
+				el('card').innerHTML = words[wordIndex++];
+				wordTime = (new Date()).getTime();
+			}
+			
+			function end() {
+				var average = ((new Date()).getTime() - startTime) / (1000.0 * words.length);
+				el('wordTime').innerHTML = Math.floor(average) + '.' + Math.floor((average*10) % 10);
+				el('wordTime').setAttribute('class', lateClass(average) );
+				
+				var comment;
+				for ( var i=0, l=comments.length; i < l; i++ ) {
+					comment = comments[i];
+					if ( average < comment[0] )
+						break;
+				}
+				
+				el('card').innerHTML = "<div class='comment'>" + comment[1] + "</div><div><img src='" + comment[2] + "'/></div>";
+				clearTimeout( timer );
+				timer = null;
+				el('instructions').style.visibility = 'hidden';
+				el('start').style.visibility = 'visible';
+			}
+			
+			el('start').onclick = start;
+			
+			document.onkeydown = function( evt ) {
+				if (!evt) 
+					var evt = window.event;
+				var code = evt.keyCode || evt.which;
+				if (( code == 32 ) && ( timer != null )) {
+					nextWord();
+				}
+			}
+		}
+	</script>
+</head>
+<body>
+<div id="controls">
+	<button id="start">start</button>
+
+	<label for="totalTime">total time:</label>
+	<span id="totalTime"></span>
+
+	<label for="wordTime">word time:</label>
+	<span id="wordTime"></span>
+
+	<label for="counter">words remaining:</label>
+	<span id="counter"></span>
+</div>
+<div id="card"></div>
+<label for="card" id="instructions">Press space when child reads word aloud.</label>
+</body>
+</html>

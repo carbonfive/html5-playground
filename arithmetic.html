@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>arithmetic</title>
+	<style type="text/css" media="screen">
+		#addend-1 span, #addend-2 span {
+			display: block; float: left; text-align: center; width: 30px; margin: 0px 2px; 
+			font-family: Helvetica,Arial; font-size: 25pt; padding: 0px;
+		}
+
+		#carry-flags { width: 238px; }
+		#carry-flags span {
+			display: block; float: left; text-align: center; width: 16px; margin: 15px 8px 5px 8px;
+			font-family: Helvetica,Arial; font-size: 14pt; padding: 5px 0px 0px 0px;
+			border: 1px dashed #aaa; height: 22px;
+		}
+		#carry-flags span:hover { cursor: pointer; }
+
+		#sum input {
+			width: 28px; margin: 0px 2px; font-family: Helvetica,Arial; font-size: 25pt; outline:none;
+			height: 40px; padding: 5px 0px 0px 0px; text-align: center; border: 1px dashed #aaa;  
+		}
+		#sum input:focus { border-color: #fff #fff #000 #fff; cursor:none; }
+
+		#addend-1, #addend-2, #sum, #carry-flags {
+		  clear: both; float: right; text-align: right; margin-bottom: 5px;
+		}
+		#addend-2 {  width: 238px; }
+
+		#sum {
+		  padding: 10px 0px 0px 0px; width: 238px; border-top: 2px solid #000; 
+		}
+
+		#flags { width:225px; margin-bottom: 3px; padding-top:21px; } 
+		#flags span {
+		  font-family: Helvetica,Arial; font-size: 33px; line-height: 5pt; letter-spacing: 2px; color: #eee;
+		}
+		#flags span.m0 { color:#000; }
+		#flags span.m1 { color:#600; }
+		#flags span.m2 { color:#900; }
+		#flags span.m3 { color:#f00; }
+
+		div.stat {
+			border-bottom: 1px dotted #666; clear:both; position:relative; margin-bottom: 5px;                    
+			font-family: Helvetica,Arial; font-size: 9pt; height: 1em;
+		}
+		div.stat label {
+			position: relative; background-color: #fff; top: .1em; float: left; padding-right: 5px;
+		}
+		span.stat {
+		  	float: right; position: relative; background-color: #fff; padding-left: 5px;
+			font-size: 10pt; font-weight: bold; top: .5em; top: .1em; color: #444;
+		}
+
+		#game { width: 540px; margin: 50px auto 0px auto; position:relative; }
+		#test { width: 238px; float:left;  }
+		#stats { width: 230; margin-left: 50px; float:left;  }
+		#message { position:absolute; width: 540px; text-align:center; top:0; left:0; margin:auto 0px; 
+				   vertical-align:center; font-family:Helvetica,Arial; font-weight: bold;}
+		#message.WRONG   { color:#c00; }
+		#message.CORRECT { color:#000; }
+		#message.PERFECT { color:#009; }
+		#message.DONE    { color:#090; }
+	</style>
+	<script type="text/javascript" charset="utf-8">
+		/*  TODO:
+			- rank
+			- left, right buttons, select answer when re-focusing.
+				- store value and clear input when focusing an input. restore on left or right out.
+			- spacebar to toggle carry flag
+			- fix focusing issues when at end of list
+			- pad leading zeros in addends
+			- perfect only if time is in top quartile
+			- configure number of problems
+			- configure size of problem
+			- enable browser/os navigation when inputs are focused
+			- keyboard help
+			- title, copyright
+			- highlight incorrect digits when incorrect.
+			- replay button
+			*/
+		var PROBLEMS = 24, MEAN_TIME=20;
+		var RANKS = ['Bad Adder','Math Beginner','Good Student','Crazy Carrier','Arithmetic Star','Math Master','Arithmetic Genius']
+		var mtsqrt = Math.sqrt(MEAN_TIME/2);
+	
+		function el(id) {
+			return document.getElementById(id);
+		}
+		function insideEvent( type, f ) {
+			return function(evt) {
+				if (!evt) 
+					var evt = window.event
+				var target;
+				if (evt.target) target = evt.target;
+				else if (evt.srcElement) target = evt.srcElement;
+			
+				if ( target.nodeName == type )
+					return f(target, evt)
+				return true;
+			}
+		}
+		function init() {
+			var addend1, addend2, currentIndex, answered=0, missed=0, currentMissed=0, perfect=0;
+			var totalScore=0;
+			var startTime = new Date().getTime(), problemTime;
+			var messaging = false;
+			
+			function nextProblem() {
+				addend1 = Math.floor(999999*Math.random());
+				addend2 = Math.floor(999999*Math.random());
+				var cfIH = '', a1IH = '', a2IH = '', sIH = '', a1=addend1, a2=addend2;
+				for ( var i=0; i < 6; i++ ) {
+					cfIH += "<span id='cf-" + i + "'></span>";
+					a1IH = "<span id='a1-" + i + "'>"+ (a1%10) +"</span>" + a1IH;
+					a1 = (a1-a1%10)/10;
+					a2IH = "<span id='a2-" + i + "'>"+ (a2%10) +"</span>" + a2IH;
+					a2 = (a2-a2%10)/10;
+					sIH = "<input id='s-" + i + "'></input>" + sIH;
+				}
+				sIH = "<input id='s-6'></input>" + sIH;
+				a2IH = '<span id="plus">+</span>' + a2IH;
+				el("carry-flags").innerHTML = cfIH;
+				el("addend-1").innerHTML = a1IH;
+				el("addend-2").innerHTML = a2IH;
+				el("sum").innerHTML = sIH;
+
+				el('s-0').focus();
+				currentIndex = 0;
+				currentMissed = 0;
+				
+				problemTime = new Date().getTime();
+			}			
+			
+			function identity(x) { return x; }
+			function parabola(x) {return 1-Math.pow(2*x-1,2); }
+			function animate(id,prop,start,stop,units,duration,tween,callback) {
+				var count=0, steps=duration/20;
+				el(id).style[prop] = start + (units?units:'');
+				tween = tween || identity;
+				var anim = setInterval(function() {
+					count += 1;
+					el(id).style[prop] = (start+(stop - start) * tween( count/steps )) + (units?units:'');
+					if ( count == steps ) {
+						clearInterval(anim);
+						if (callback)
+							callback();
+					}
+				},20);
+			}
+			
+			function message( text, callback, duration ) {
+				var message = el('message');
+				message.className = text;
+				message.innerHTML = text;
+				messaging = true;
+				duration = duration || 500;
+				animate('message','opacity',0,.5,'',duration, parabola, function(){ 
+					if ( callback ) 
+						callback(); 
+					messaging=false; });
+				animate('message','fontSize',5,75,'pt',duration*.6);
+				animate('message','top',100,70,'px',duration*.6);
+			}
+			
+			function formatTime(ms) {
+				return Math.floor(ms/1000) + '.' + (ms%1000>99?'':'0') + Math.floor((ms%1000)/10);
+			}
+			
+			function correct() {
+				if ( currentMissed == 0)
+					perfect++;
+				el('perfect-count').innerHTML = perfect+'';
+				el('f-'+answered).className = 'm' + (currentMissed>3?3:currentMissed)
+				answered++;
+				el('answered-count').innerHTML = answered+'';
+				
+				var time = new Date().getTime() - startTime;
+				el('average-time').innerHTML = formatTime(Math.floor(time/answered));
+				el('total-time').innerHTML = formatTime(time);
+				
+				var problemSeconds = (new Date().getTime() - problemTime) / 1000;
+				var score = Math.floor(100*(1 - 1/(1+Math.exp(mtsqrt-problemSeconds/(mtsqrt*2))))
+									   * Math.max(0,(3-currentMissed)/3));
+				totalScore += score;
+				
+				el('score').innerHTML = totalScore+'';
+				el('rank').innerHTML = RANKS[Math.floor(RANKS.length*totalScore / (100*answered))];
+				
+				if ( answered < PROBLEMS )
+					nextProblem();
+				else {
+					el('s-'+currentIndex).blur();
+					message('DONE', function() { messaging=true; }, 2000) ;
+				}
+			}
+			
+			function miss() {
+				missed++;
+				el('missed-count').innerHTML = missed+'';
+				currentMissed++;
+			}
+			
+			function checkValue(){
+				sum = 0;
+				for ( var i=0; input = el('s-'+i); i++ )
+					sum += input.value ? parseInt(input.value)*Math.pow(10,i) : 0 ;
+				if ( sum == addend1+addend2 ) {
+					message(( currentMissed == 0 ) ? 'PERFECT' : 'CORRECT', correct);
+				} else {
+					miss();
+					message('WRONG');
+				}
+			}
+			
+			el("carry-flags").onclick = insideEvent('SPAN', function( target ) {
+				target.innerHTML = target.innerHTML ? '' : '1';
+				el('s-'+currentIndex).focus();
+				return false;
+			});
+			el("sum").onkeydown = insideEvent('INPUT', function(target, evt) {
+				if ( messaging )
+					return false;
+				var code = evt.keyCode || evt.which;
+				currentIndex = parseInt(/s-(\d+)/.exec(target.id)[1]);
+				if ( code >= 48 && code < 58 ) {
+					target.value = ''+(code-48);
+					if ( el('s-' + (currentIndex+1)) )
+						el('s-' + (++currentIndex)).focus();
+					else
+						target.blur();
+				} else if ( code == 8 ) {
+					if ( target.value )
+						target.value = '';
+					else if ( currentIndex > 0 )
+						el('s-'+(--currentIndex)).focus();		
+				}
+				return false;				
+			});
+			document.onkeydown = function(evt) {
+				if (!evt) 
+					var evt = window.event
+				var code = evt.keyCode || evt.which;
+				if ( code == 13 )
+					checkValue();
+				else if ( code == 8 )
+					el('s-'+currentIndex).focus();		
+			}
+			el("sum").onfocus = insideEvent('INPUT', function(target) {
+				console.debug('focus: ' + target.id);
+			});
+			
+			
+			nextProblem();
+
+			var flags = '';
+			for ( var i=0; i < PROBLEMS; i++ )
+				flags += '<span id="f-'+i+'" class="' + (i<0?' m'+(i%4):'')+'">&bull;</span> ';
+			el('flags').innerHTML = flags;
+		}
+	</script>
+</head>
+<body onload="init()">
+<div id="game">
+<div id="test">
+	<div id="carry-flags"></div>
+	<div id="addend-1"></div>
+	<div id="addend-2"></div>
+	<div id="sum"></div>
+</div>
+<div id="stats">
+	<div id="flags"></div>
+	<div class="stat"><label for="answered-count">Answered</label><span class="stat" id="answered-count">0</span></div>
+	<div class="stat"><label for="perfect-count">Answered Perfectly</label><span class="stat" id="perfect-count">0</span></div>
+	<div class="stat"><label for="missed-count">Mistakes</label><span class="stat" id="missed-count">0</span></div>
+	<div class="stat"><label for="average-time">Average Time</label><span class="stat" id="average-time">0.0</span></div>
+	<div class="stat"><label for="total-time">Total Time</label><span class="stat" id="total-time">0.0</span></div>
+	<div class="stat"><label for="score">Score</label><span class="stat" id="score">0</span></div>
+	<div class="stat"><label for="rank">Rank</label><span class="stat" id="rank">???</span></div>
+</div>
+<div id="message"></div>
+</div>
+
+</body>
+</html>

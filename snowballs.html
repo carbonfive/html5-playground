@@ -1,0 +1,692 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Snowballs</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="sivoh">
+	<style type="text/css" media="screen">
+		#game { display:block; margin: 0px auto; }
+	</style>
+	<script type="text/javascript" charset="utf-8">
+	
+		/* TODO: 
+		 - Fix alignment of player, snowball and monsters.  Right now, everything happens at the top left 
+		   corner
+		 - Monster velocity: (md-sd)*(l/(l+tf)) + sd
+		   md = max difficulty.  sd = starting difficulty (fraction of mv). tf = timing factor
+		   if we want the difficulty to be 80% of md at a given level, l80, then
+		   .8*md = (md-sd)*(l80/(l80 + tf)) + sd => tf = l80*((md-sd)/(.8*md - sd) - 1)
+		*/
+	
+		var NORTH=0,SOUTH=1,WEST=2,EAST=3;
+		var DIRECTIONS = [NORTH,SOUTH,WEST,EAST];
+		var ANTIDIRECTIONS = [SOUTH,NORTH,EAST,WEST];
+		var MAXX=18, MAXY=10;
+		var MONSTER_COUNT = function(level) {
+			if ( level > 12 )
+				return 15;
+			return level + 3;
+		}
+		var STUN_DURATION = 5;
+		var SNOWBALL_VELOCITY = .25, PLAYER_VELOCITY = .25;
+		var START_MONSTER_VELOCITY = .025, MAX_MONSTER_VELOCITY = .2;
+		var FIFTY_PERCENT_VELOCITY_LEVEL = 10;
+		var MONSTER_VELOCITY= function(level) {
+			var md = MAX_MONSTER_VELOCITY, sd = START_MONSTER_VELOCITY, l50 = FIFTY_PERCENT_VELOCITY_LEVEL;
+			var tf = l50*((md-sd)/(.5*md - sd) - 1);
+			return (md-sd)*(level/(level+tf)) + sd;
+		};
+		var FRAME_INTERVAL = 33;
+		
+		var game = null;
+			
+		function Chooser() {
+			var choices=[], weights=[0], totalWeight=0, allpublic={};
+
+			var add = allpublic.add = function( obj, weight ) {
+				choices.push(obj);
+				weights.push( totalWeight += weight );
+				return allpublic;
+			}
+
+			var choose = allpublic.choose = function() {
+				if ( choices.length == 0 )
+					return null;
+				var choice = Math.random() * totalWeight, start=0, end=weights.length-1, next;
+				while ( end > start + 1 ) {
+				    next=start+Math.floor((end - start)/2);
+					if ( choice >= weights[next] )
+						start = next;
+					else
+						end = next;
+				}
+				return choices[start];
+			}	
+			return allpublic;
+		}
+		
+		function Player(x,y,nodes) {
+			var alive = true, direction=0, moving = false; 
+			var snowballs = nodes[y][x].takeSnowball();
+			var xv = [0,0,-PLAYER_VELOCITY,PLAYER_VELOCITY], yv = [-PLAYER_VELOCITY,PLAYER_VELOCITY,0,0]
+			function move(dir) {
+				var intx = Math.round(x), inty = Math.round(y); 
+				if ( dir != null ) {
+					moving = true;
+					direction = dir;
+					return;
+				}
+				if ( moving ) {
+					if ((( direction == NORTH ) || ( direction == SOUTH )) && ( x != intx )) {
+						x += x > intx ? -PLAYER_VELOCITY : PLAYER_VELOCITY; 
+					} else if ((( direction == EAST ) || ( direction == WEST )) && ( y != inty )) {
+						y += y > inty ? -PLAYER_VELOCITY : PLAYER_VELOCITY; 
+					} else if ((x != intx) || (y != inty) || (nodes[inty][intx].path(direction))) {
+						x += xv[direction];
+						y += yv[direction];
+					}
+				}
+				if (Math.abs(x - intx) < .0001)
+					x = intx;
+				if (Math.abs(y - inty) < .0001)
+					y = inty;
+				if ((x == intx) && (y == inty) && ( snowballs + nodes[y][x].hasSnowball() <= 10 ))
+					snowballs += nodes[y][x].takeSnowball();
+				
+			}
+			function halt() { moving = false; }
+			function getx() { 
+				return x;
+			}
+			function gety() {
+				return y; 
+			}
+			function testAttack( monster ) {
+				if ( monster.freeze() > 4 )
+					return Math.abs(monster.x() - x) > .25 || Math.abs(monster.y() - y) > .25;
+				return alive = Math.abs(monster.x() - x) > .25 || Math.abs(monster.y() - y) > .25;
+			}
+			function getalive() { return alive; }
+			function getsnowballs() { return snowballs; }
+			function getdirection() { return direction; }
+			function throwSnowball() { 
+				snowballs--; 
+				return Snowball(x, y,direction,nodes);
+			}
+			return {x:getx, y:gety, move:move, snowballs:getsnowballs, alive:getalive, halt:halt,
+				    testAttack:testAttack, direction:getdirection, throwSnowball:throwSnowball};
+		}
+	
+		function Snowball(x,y,dir,nodes) {
+			var dx = [0,0,-1,1][dir]*SNOWBALL_VELOCITY, dy = [-1,1,0,0][dir]*SNOWBALL_VELOCITY;
+			function move() {
+				var ix = Math.round(x), iy = Math.round(y);
+				y += dy; 
+				x += dx;
+				return (ix == Math.round(x) && iy == Math.round(y)) || nodes[iy][ix].path(dir);
+			}
+			function getx() { return x; }
+			function gety() { return y; }
+			return {x:getx, y:gety, move:move};
+		}
+		
+		function integerCrossing( x, delta ) { return Math.floor(x) != Math.floor(x+delta); }
+		function integerCrossed( x, delta ) { return Math.max(Math.floor(x), Math.floor(x+delta)); }
+
+		function Monster(x,y,nodes,level) {
+			var xv = [0,0,-MONSTER_VELOCITY(level),MONSTER_VELOCITY(level)];
+			var yv = [-MONSTER_VELOCITY(level),MONSTER_VELOCITY(level),0,0]
+			var direction = NORTH, freeze = 0, stun=0, me;
+			
+			function chooseDirection( ) {
+				var possibilities = Chooser();
+				for ( var i=0; i < 4; i++ )
+					if ( nodes[y][x].path(i) )
+						possibilities.add(i, ( ANTIDIRECTIONS[i] != direction ) ? 10 : 1 );
+				return possibilities.choose();
+			}
+			
+			function move() {
+				if ( freeze > 4 )
+					return;
+				if ( stun > 0 ) {
+					stun--;
+					return;
+				}
+				if (( integerCrossing(x,xv[direction]) ) || ( integerCrossing(y,yv[direction]) )) {
+					var xint = integerCrossed(x,xv[direction]);
+					var yint = integerCrossed(y,yv[direction]);
+					var moved = Math.abs( x - xint + y - yint );
+					x = xint; y = yint;
+					direction = chooseDirection();
+					x += xv[direction] + (xv[direction] < 0 ? moved : (xv[direction] > 0 ? -moved : 0));  
+					y += yv[direction] + (yv[direction] < 0 ? moved : (yv[direction] > 0 ? -moved : 0));  
+				} else {
+					x += xv[direction];
+					y += yv[direction];
+				}
+			}
+			function getx() { 
+				return x;
+			}
+			function gety() {
+				return y; 
+			}
+			function testAttack( snowball ) {
+				if ( Math.abs(snowball.x() - x) <= .5 && Math.abs(snowball.y() - y) <= .5 ) {
+					freeze += 1;
+					stun = STUN_DURATION;
+					return true;
+				}
+				return false;
+			}
+			function bounceIfNear(monster)  {
+				if ( monster == me )
+					return;
+				if ( Math.abs(monster.x() - x) <= .5 && Math.abs(monster.y() - y) <= .5 ) {
+					direction = ANTIDIRECTIONS[direction];
+					while ( Math.abs(monster.x() - x) <= .5 && Math.abs(monster.y() - y) <= .5 ) 
+						move();
+				}
+			}
+			function stunned() { return stun > 0; }
+			function getfreeze() { return freeze };
+			return (me = {x:getx, y:gety, move:move, freeze:getfreeze, testAttack:testAttack, 
+					stunned:stunned, bounceIfNear:bounceIfNear });
+		}
+
+		function Node(x,y,snowball,nodes, snowballChooser) {
+			var paths = [false,false,false,false];
+			
+			function choosePath() {
+				var potentialPaths = Chooser();
+				if ( !paths[NORTH]  && y>0 )
+					potentialPaths.add(NORTH, paths[SOUTH] ? 3 : 1 );
+				if ( !paths[SOUTH]  && y<MAXY-1 )
+					potentialPaths.add(SOUTH, paths[NORTH] ? 3 : 1 );
+				if ( !paths[WEST]  && x>0 )
+					potentialPaths.add(WEST, paths[EAST] ? 3 : 1 );
+				if ( !paths[EAST]  && x<MAXX-1 ) 
+					potentialPaths.add(EAST, paths[WEST] ? 3 : 1 );
+				return potentialPaths.choose();
+			}
+		
+			function addPath(dir) {
+				if ( dir != null ) {
+					paths[dir] = true;
+					return null;
+				}
+
+				dir = choosePath();
+				if ( dir == null )
+					return null;
+			
+				paths[dir] = true;
+				var toy = y + [-1,1,0,0][dir], tox = x + [0,0,-1,1][dir], newNode = null;
+				if ( ! nodes[toy][tox] )
+					nodes[toy][tox] = newNode = Node(tox,toy,snowballChooser.choose(),nodes, snowballChooser);
+				nodes[toy][tox].addPath([SOUTH,NORTH,EAST,WEST][dir]);
+				return newNode; 
+			}
+			
+			function hasSnowball() {
+				return snowball;
+			}
+			
+			function takeSnowball() {
+				var size = snowball;
+				snowball = 0;
+				return size;
+			}
+		
+			function path(direction) {
+				return paths[direction];
+			}
+		
+			return nodes[y][x] = {x:x, y:y, addPath:addPath, path:path, 
+								  hasSnowball:hasSnowball, takeSnowball:takeSnowball};
+		}
+	
+		function Game( level ) {
+			var i, j, nodes, player, monsters, frozenMonsters, mover, snowballs, step=0;
+
+			function start() {
+				nodes = createMaze();
+				player = Player(0,0,nodes);
+				snowballs = [];
+				frozenMonsters = []
+				monsters = [];
+				for (i=0; i < MONSTER_COUNT(level); i++)
+					monsters.push( Monster(MAXX-1,MAXY-1,nodes,level) );
+					
+				draw();
+				mover = setInterval( update, FRAME_INTERVAL );
+
+				var dirmap = {38:NORTH,40:SOUTH,37:WEST,39:EAST};
+				document.onkeydown = function( evt ) {
+					if (!evt) 
+						var evt = window.event;
+					var code = evt.keyCode || evt.which;
+					if ( code in dirmap )
+						move( dirmap[code] );
+					switch ( code ) {
+						case 27:
+							if ( paused() )
+								resume();
+							else
+								pause();
+							break;
+						case 32:
+							throwSnowball();
+							break;
+					}
+				}
+
+				document.onkeyup = function( evt ) {
+					if (!evt) 
+						var evt = window.event;
+					var code = evt.keyCode || evt.which;
+					if (( code in dirmap ) && ( dirmap[code] == direction() ))
+						haltPlayer();
+				}
+
+			}
+				
+			function createMaze() {
+				var nodes = [];
+				for (var i=0; i < 10; i++)
+					nodes[i] = [];
+
+				var snowballChooser = Chooser().add(0,10).add(1,10).add(2,3).add(5,1)
+				var node = Node(0,0,snowballChooser.choose(),nodes,snowballChooser);
+				var maxnode = node;
+				var allnodes = [node];
+				while ( ! nodes[MAXY-1][MAXX-1] ) {
+					node = node.addPath();
+					if ( node != null ) {
+						allnodes.push(node);
+						if ( node.x + node.y > maxnode.x + maxnode.y )
+							maxnode = node;
+					} else
+						node = maxnode;
+				}
+				while ( allnodes.length < MAXX*MAXY / 2 ) {
+					node = allnodes[Math.floor(Math.random() * allnodes.length)].addPath();
+					while ( node != null ) {
+						allnodes.push(node);
+						node = node.addPath();
+					}
+				}
+				return nodes;
+			}
+			
+			function pause() {
+				if ( mover ) {
+					clearInterval(mover);
+					mover = null;
+				} 
+			}
+			
+			function resume() {
+				if (( mover == null )  && ( player.alive() )) {
+					mover = setInterval(update, FRAME_INTERVAL );
+				}
+			}
+			
+			function paused() {
+				return mover == null;
+			}
+			
+			function move( direction ) {
+				player.move(direction);
+			}
+			
+			function throwSnowball() {
+				if ( player.snowballs() > 0 )
+					snowballs.push( player.throwSnowball() );
+			}
+			
+			function haltPlayer() {
+				player.halt();
+			}
+			
+			function direction() {
+				return player.direction();
+			}
+				
+			function removeAll( ar, instances ) {
+				for ( var i=0,l=instances.length; i < l; i++ ) {
+					for ( var j=0, l2=ar.length; j < l2; j++ ) {
+						if ( instances[i] == ar[j] ) {
+							ar.splice(j,1);
+							break;
+						}
+					}
+				}
+			}				
+				
+			function update() {
+				var monstersEliminated = [];
+				for ( var i=0,monster; monster = monsters[i]; i++ ) {
+					monster.move();
+					for ( var j=0,frozen; frozen = frozenMonsters[j]; j++ ) {
+						monster.bounceIfNear(frozen);
+					}
+					if ( ! player.testAttack( monster ) ) {
+						if ( monster.freeze() > 4 ) {
+							monstersEliminated.push(monster);
+							continue;
+						}
+						draw();
+						clearInterval(mover);
+						drawGameOver();
+						mover = null;
+						return;
+					}
+					for ( var j=0,snowball; snowball = snowballs[j]; j++ ) {
+						if ( monster.testAttack(snowball) ) {
+							snowballs.splice(j,1);
+							if ( monster.freeze() == 5 ) {
+								monstersNeedRefresh = true;
+								frozenMonsters.push(monster);
+							}
+							break;
+						}
+					}
+				}
+				
+				removeAll( monsters, monstersEliminated );
+				removeAll( frozenMonsters, monstersEliminated );
+				
+				if ( monsters.length + frozenMonsters.length == 0 ) {
+					draw();
+					drawCongratulations();
+					clearInterval(mover);
+					mover = null;
+					setTimeout( levelUp, 2000 );
+					return;
+				}
+
+				var liveSnowballs = [];
+				for ( i=0,snowball; snowball = snowballs[i]; i++ )
+					if ( snowball.move() )
+						liveSnowballs.push(snowball);
+				snowballs = liveSnowballs;
+				player.move();
+				draw();
+				
+				step++;
+			}
+			
+			function levelUp() {
+				game = Game(level + 1);
+				game.start();
+			}
+			
+			function getContext() {
+				var canvas = document.getElementById('game');
+				return canvas.getContext('2d');
+			}
+
+			function draw() {
+				var canvas = document.getElementById('game');
+				var ctx = getContext();
+				var node;
+
+				ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+
+				drawPath(ctx);
+				drawSnowballs(ctx);
+				drawPlayer(ctx);
+				drawMonsters( monsters, ctx);
+				
+				if ( step < 2 *1000 / FRAME_INTERVAL ) {
+					message("LEVEL " + (level+1), 'rgba(200,200,130,.5)')
+				}
+			}
+			
+			function drawPath(ctx) {
+				for (var i=0; i < MAXY; i++) {
+					for (var j=0; j<MAXX; j++) {
+						if ( node = nodes[i][j] ) {
+						  	ctx.fillStyle = 'rgb(96,96,96)';
+							ctx.fillRect(10+50*j,10+50*i,30,30);
+							if ( node.path(EAST) )
+								ctx.fillRect(40+50*j,10+50*i,20,30);
+							if ( node.path(SOUTH) )
+								ctx.fillRect(10+50*j,40+50*i,30,20);
+							
+							if ( node.hasSnowball() ) {
+								ctx.fillStyle = 'rgb(255,255,255)';
+								ctx.beginPath();
+								ctx.arc(25+50*j,25+50*i, 2+node.hasSnowball(), 0, Math.PI*2, false);
+								ctx.closePath();
+								ctx.fill();
+							}
+						}
+					}
+				}
+			}
+			
+			function drawMonsters( monsters, ctx ) {
+				for ( var i=0,monster; monster = monsters[i]; i++)
+					drawMonster( ctx, monster.x()*50, monster.y()*50, monster.freeze(), monster.stunned() );
+			}
+			
+			function drawMonster( ctx, x, y, freeze, stunned ) {
+				ctx.fillStyle = 'rgb(175,125,225)';
+				fillarc(ctx,25,23,9,0,Math.PI*2,x,y);
+				ctx.fillRect(19+x,32 + y,5,3);
+				ctx.fillRect(26+x,32 + y,5,3);
+
+				ctx.fillStyle = 'rgb(255,255,255)';
+				ctx.beginPath();
+				ctx.arc(22 + x,21 + y, 3, 0, Math.PI*2, false);
+				ctx.arc(28 + x,21 + y, 3, 0, Math.PI*2, false);
+				ctx.closePath();
+				ctx.fill();
+
+				switch ( freeze ) {
+					case 0: break;
+					case 1:
+						fillarc(ctx, 25, 23, 9, -3*Math.PI/4, -Math.PI/4, x, y );
+						break;
+					case 2:
+						fillarc(ctx, 25, 23, 9, -Math.PI, 0, x, y );
+						break;
+					case 3:
+						fillarc(ctx, 25, 23, 9, 3*Math.PI/4, Math.PI/4, x, y );
+						break;
+					case 4:
+						fillarc(ctx,25,23,9,0,Math.PI*2,x,y);
+						break;
+					default:
+						fillarc(ctx,25,23,9,0,Math.PI*2,x,y);
+						ctx.fillRect(16+x,23+y,18,12);
+						break;
+				}
+			
+				if ( stunned ) {
+					ctx.fillStyle = 'rgb(0,0,0)';
+					fillarc(ctx, 25, 27, 1.5, 0, 2*Math.PI, x, y );
+				} else {
+					ctx.fillRect(23+x,26 + y,4,2);
+					ctx.fillRect(22+x,26 + y,6,1);
+				}
+			
+				ctx.fillStyle = 'rgb(0,0,0)';
+				ctx.beginPath();
+				ctx.arc(22 + x,21 + y, 1, 0, Math.PI*2, false);
+				ctx.arc(28 + x,21 + y, 1, 0, Math.PI*2, false);
+				ctx.closePath();
+				ctx.fill();
+				
+			}
+			
+			function drawSnowballs(ctx) {
+				ctx.strokeStyle = 'rgb(60,60,60)';
+				ctx.fillStyle = 'rgb(255,255,255)';
+				for ( var i=0,snowball; snowball = snowballs[i]; i++ ) {
+					ctx.lineWidth = 1;
+					ctx.beginPath();
+					ctx.arc(25 + snowball.x()*50,25 + snowball.y()*50, 3, 0, Math.PI*2, false);
+					ctx.closePath();
+					ctx.fill();
+					ctx.stroke();
+				}
+				
+			} 
+			
+			function drawPlayer(ctx) {
+				ctx.fillStyle = 'rgb(255,125,125)';
+				var x = player.x(), y = player.y(), direction = player.direction(), gx=50*x, gy=50*y;
+				if ( player.alive() ) {
+					ctx.beginPath();
+					ctx.arc(25 + gx,15 + gy, 4, 0, Math.PI*2, false);
+					ctx.closePath();
+					ctx.fill();
+					ctx.fillRect(23+gx,20 + gy,4,10);
+					
+					ctx.fillStyle = 'rgb(92,92,92)';
+					ctx.fillRect(23+gx,13+gy,1,1);
+					ctx.fillRect(26+gx,13+gy,1,1);
+					ctx.fillRect(24+gx,15+gy,1,1);
+					ctx.fillRect(24+gx,17+gy,2,1);
+					ctx.fillStyle = 'rgb(255,125,125)';
+
+					filltrap( ctx, 23,20, 20,28, 22,28, 23,22, gx, gy );
+					filltrap( ctx, 27,20, 30,28, 28,28, 27,22, gx, gy );
+					filltrap( ctx, 23,30, 20,36, 23,36, 25,30, gx, gy );
+					filltrap( ctx, 27,30, 30,36, 27,36, 25,30, gx, gy );
+					
+					if ( direction == NORTH )
+						filltriangle(ctx, 22, 9, 28, 9, 25, 5, gx, gy);
+					if ( direction == SOUTH )
+						filltriangle(ctx, 22, 39, 28, 39, 25, 43, gx, gy);
+					 if ( direction == EAST )
+					 	filltriangle(ctx, 31, 12, 31, 18, 35, 15, gx, gy);
+					 if ( direction == WEST )
+					 	filltriangle(ctx, 19, 12, 19, 18, 15, 15, gx, gy);
+				}
+				else
+				{
+					ctx.beginPath();
+					ctx.arc(17 + gx,34 + gy, 4, 0, Math.PI*2, false);
+					ctx.closePath();
+					ctx.fill();
+					ctx.fillRect(20+gx,34+gy,16,4);
+					ctx.fillRect(34+gx,32+gy,2,2);
+				}
+				
+				ctx.fillStyle = 'rgb(150,150,150)';
+				fillarc( ctx, 30, 530, 15, Math.PI/2, -Math.PI/2, 0, 0 );
+				ctx.fillRect(30, 515, 285, 30 );
+				fillarc( ctx, 315, 530, 15, -Math.PI/2, Math.PI/2, 0, 0 );
+
+				ctx.fillStyle = 'rgb(255,255,255)';
+				ctx.strokeStyle = 'rgb(60,60,60)';
+				ctx.lineWidth = 1;
+				for (var i=0,l = player.snowballs(); i < l; i++ ) {
+					fillarc( ctx, 35, 530, 8, 0, Math.PI*2, 30*i, 0 );
+					ctx.stroke();
+				}
+				
+
+				ctx.fillStyle = 'rgb(150,150,150)';
+				ctx.beginPath();
+				ctx.moveTo(600,515);
+				ctx.lineTo(885,515);
+				ctx.arc( 885, 530, 15, -Math.PI/2, Math.PI/2, false );
+				ctx.lineTo(600,545);
+				ctx.arc( 600, 530, 15, Math.PI/2, -Math.PI/2, false );
+				ctx.closePath();
+				ctx.fill();
+				
+				for ( var i=0,l=MONSTER_COUNT(level)-monsters.length; i < l; i++)
+					drawMonster( ctx, 855 - 30*i, 505, 0, false );
+
+
+				ctx.fillStyle = 'rgb(150,150,150)';
+				ctx.font = 'bold 20pt Helvetica,Arial';
+				var levelText = 'level ' + (level + 1)
+				var metrics = ctx.measureText(levelText);
+				var start = (ctx.canvas.width - metrics.width)/2.0
+				
+				ctx.fillText(levelText, start, 540 );
+				
+			}
+			
+			function drawGameOver() {
+				message( "GAME OVER", 'rgba(80,60,120,.5)' );
+			}
+			
+			function drawCongratulations() {
+				message( "GOOD JOB!", 'rgba(240,120,120,.5)' );
+			}
+			
+			function message( text, fillStyle ) {
+				var ctx = getContext();
+				ctx.fillStyle = fillStyle;
+				ctx.strokeStyle = 'rgb(255,255,255)';
+				ctx.lineWidth = 5.0;
+				ctx.font = 'bold 100pt Helvetica,Arial';
+				
+				var metrics = ctx.measureText(text);
+				var start = (ctx.canvas.width - metrics.width)/2.0
+				
+				ctx.beginPath();
+				ctx.strokeText(text, start, 280 );
+				ctx.fillText(text, start, 280 );
+			}
+			
+			function arc( ctx, x, y, r, start, end, xoffset, yoffset ) {
+				ctx.beginPath();
+				ctx.arc(x + xoffset,y + yoffset, r, start, end, false);
+				ctx.closePath();
+			}
+			
+			function fillarc( ctx, x, y, r, start, end, xoffset, yoffset ) {
+				ctx.beginPath();
+				ctx.arc(x + xoffset,y + yoffset, r, start, end, false);
+				ctx.closePath();
+				ctx.fill();
+				
+			}
+			
+			function filltriangle(ctx, x1,y1,x2,y2,x3,y3, xoffset, yoffset ) {
+				ctx.beginPath();
+				ctx.moveTo(x1+xoffset,y1+yoffset);
+				ctx.lineTo(x2+xoffset,y2+yoffset);
+				ctx.lineTo(x3+xoffset,y3+yoffset);
+				ctx.closePath();
+				ctx.fill();
+			}
+			
+			function filltrap(ctx, x1,y1,x2,y2,x3,y3,x4,y4, xoffset, yoffset ) {
+				ctx.beginPath();
+				ctx.moveTo(x1+xoffset,y1+yoffset);
+				ctx.lineTo(x2+xoffset,y2+yoffset);
+				ctx.lineTo(x3+xoffset,y3+yoffset);
+				ctx.lineTo(x4+xoffset,y4+yoffset);
+				ctx.closePath();
+				ctx.fill();
+			}
+			
+			return { pause:pause, start:start, resume:resume, paused:paused, direction:direction,
+				     move:move, throwSnowball:throwSnowball, haltPlayer:haltPlayer }
+		}
+
+		function init() {
+			var game = Game(0);
+			game.start();
+		}
+		
+	</script>
+</head>
+<body onload="init()">
+<canvas id="game" width="900" height="560"></canvas> 
+</body>
+</html>

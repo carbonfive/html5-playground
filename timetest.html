@@ -1,0 +1,288 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Time Test</title>
+	<style type="text/css" media="screen">
+			#game { display:block; margin: 0px auto; }
+			#answers button {
+			  border: 1px solid #999; background-color: #fff; font-family: Helvetica,Arial;
+			  font-size: 16pt; padding: 8px 0px 4px 0px; margin: 0px 10px; width: 80px; color: #000;
+			}
+			#answers button:hover { background-color: #ffd; color: #330; border: 1px solid #330; }
+			#answers button:active { background-color: #ff9; }
+			
+			#answers { width: 500px; margin: 0px auto; margin-top: 10px; }
+			
+			#stats { width: 400px; margin: 0px auto; margin-top: 30px; 
+				font-family: Helvetica,Arial; color: #666; }
+
+			#stats label, #stats span { display: block; float: left; }
+			#stats label { margin: 0px 5px 0px 15px; }
+			#correct { width: 40px; margin-right: 37px; }
+			#time-remaining { width: 100px; text-align: center; margin-right: 49px; }
+			#missed { width: 25px; }
+	</style>
+	<script type="text/javascript" charset="utf-8">
+		var RADIUS = 180,
+			MAJOR_LINE_LENGTH = 15,
+			MINOR_LINE_LENGTH = 10,
+			CENTER_X = 210,
+			CENTER_Y = 210,
+			MISS_DELAY = 500,
+			CORRECT_DELAY = 500,
+			EASY=/\#easy$/.exec(window.location);
+		var correctAnswer = [0,0];
+		var messageTimer = null, gameTimeTimer = null;
+		var correct = 0, missed = 0;
+		var feedback = false;
+		var timeRemaining = 180;
+		
+		function parseInt1( str ) {
+		  while (str.charAt(0) == '0') str = str.substring(1);
+		  return parseInt(str);
+		}
+			
+		function Chooser() {
+			var choices=[], weights=[0], totalWeight=0, allpublic={};
+
+			var add = allpublic.add = function( obj, weight ) {
+				choices.push(obj);
+				weights.push( totalWeight += weight );
+				return allpublic;
+			}
+
+			var choose = allpublic.choose = function() {
+				if ( choices.length == 0 )
+					return null;
+				var choice = Math.random() * totalWeight, start=0, end=weights.length-1, next;
+				while ( end > start + 1 ) {
+				    next=start+Math.floor((end - start)/2);
+					if ( choice >= weights[next] )
+						start = next;
+					else
+						end = next;
+				}
+				return choices[start];
+			}	
+			return allpublic;
+		}
+	
+		function drawClock( hours, minutes ) {
+			var ctx = document.getElementById('game').getContext('2d');
+			ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+			
+			ctx.strokeStyle = 'rgb(0,0,0)';
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.lineWidth = 4;
+			ctx.beginPath();
+			ctx.arc( CENTER_X, CENTER_Y, RADIUS, 0, Math.PI*2, false );
+			ctx.closePath();
+			ctx.stroke();
+			
+			
+			ctx.lineWidth = 1;
+			for ( var i=0; i < 60; i++ ) {
+				rotate( ctx, Math.PI*i/30.0, function(ctx) {
+					ctx.moveTo( 0, -RADIUS );
+					ctx.lineTo( 0, -RADIUS + MINOR_LINE_LENGTH );
+					ctx.stroke();
+				});
+			}
+
+			ctx.lineWidth = 4;
+			for ( var i=0; i < 12; i++ ) {
+				rotate( ctx, Math.PI*i/6.0, function(ctx) {
+					ctx.moveTo( 0, -RADIUS );
+					ctx.lineTo( 0, -RADIUS + MAJOR_LINE_LENGTH );
+					ctx.stroke();
+				});
+			}
+			
+			for ( var i=1; i <= 12; i++ ) {
+				if ( i <= 3 || i >= 9 ) {
+					rotate( ctx, Math.PI*i/6.0, function(ctx) {
+						ctx.font = 'bold 16pt Helvetica,Arial';
+						ctx.fillText(i+'', -ctx.measureText(i+'').width/2.0, -RADIUS + 35 );
+						if ( EASY ) {
+							ctx.font = 'normal 9pt Helvetica,Arial';
+							ctx.fillText((i*5)+'', -ctx.measureText((i*5)+'').width/2.0, -RADIUS + 50 );
+						}
+					});
+				} else {
+					rotate( ctx, -Math.PI*(6-i)/6.0, function(ctx) {
+						ctx.font = 'bold 16pt Helvetica,Arial';
+						ctx.fillText(i+'', -ctx.measureText(i+'').width/2.0, RADIUS - 20 );
+						if ( EASY ) {
+							ctx.font = 'normal 9pt Helvetica,Arial';
+							ctx.fillText((i*5)+'', -ctx.measureText((i*5)+'').width/2.0, RADIUS - 40 );
+						}
+					});					
+				}
+			}
+			
+			ctx.fillStyle = 'rgb(180,0,0)';
+			rotate( ctx, Math.PI * minutes/30.0, function(ctx) {
+				ctx.moveTo(-5,0);
+				ctx.lineTo(-2,-RADIUS*.8);
+				ctx.lineTo(2,-RADIUS*.8);
+				ctx.lineTo(5,0);
+				ctx.fill();
+			});
+			
+			ctx.fillStyle = 'rgb(180,0,0)';
+			rotate( ctx, Math.PI * (hours + minutes/60.0)/6.0, function(ctx) {
+				ctx.moveTo(-5,0);
+				ctx.lineTo(-3,-RADIUS/2);
+				ctx.lineTo(3,-RADIUS/2);
+				ctx.lineTo(5,0);
+				ctx.fill();
+			});
+
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.beginPath();
+			ctx.arc( CENTER_X, CENTER_Y, 8, 0, Math.PI*2, false );
+			ctx.closePath();
+			ctx.fill();
+		}
+		
+		function rotate( ctx, r, drawf ) {
+			ctx.save();
+			ctx.beginPath();
+			ctx.translate( CENTER_X, CENTER_Y );
+			ctx.rotate( r  );
+			ctx.beginPath();
+			drawf( ctx );
+			ctx.closePath();
+			ctx.restore();
+		}
+			
+		function choose( options, n ) {
+			var choices = [].concat(options), selections = [];			
+			for ( var i=0; i < n; i++ )
+				selections.push( choices.splice(Math.floor(Math.random()*choices.length),1)[0] );
+			return selections;
+		}
+		
+		function generateTimes() {
+			permutations = []
+			var t1 = [Math.floor(Math.random()*12) + 1, 
+					  EASY ? Math.floor(Math.random()*12)*5 : Math.floor(Math.random()*60)];
+			permutations.push( normalize(t1) );
+			permutations.push( normalize([t1[0]-1,t1[1]]) );
+			permutations.push( normalize([t1[0]+1,t1[1]]) );
+			permutations.push( normalize([t1[0],t1[1]-5]) );
+			permutations.push( normalize([t1[0],t1[1]+5]) );
+			permutations.push( normalize([t1[0]+1,t1[1]-5]) );
+			return permutations;
+		}
+		
+		function normalize( time ) {
+			time[0] = time[0] < 1 ? 12 + time[0]%12 : (time[0]-1)%12 + 1;
+			time[1] = time[1] < 0 ? 60 + time[1]%60 : time[1]%60;
+			return time;
+		}
+		
+		function message( text, fillStyle, delay ) {
+			if ( messageTimer ) {
+				clearTimeout( messageTimer );
+				clearMessage();
+			}
+			var ctx = document.getElementById('game').getContext('2d');
+			ctx.fillStyle = fillStyle;
+			ctx.strokeStyle = 'rgb(255,255,255)';
+			ctx.lineWidth = 5.0;
+			ctx.font = 'bold 80pt Helvetica,Arial';
+			
+			var metrics = ctx.measureText(text);
+			var start = (ctx.canvas.width - metrics.width)/2.0
+			
+			ctx.beginPath();
+			ctx.strokeText(text, start, 240 );
+			ctx.fillText(text, start, 240 );
+			if ( delay )
+				messageTimer = setTimeout( clearMessage, delay );
+		}
+		
+		function clearMessage() {
+			drawClock( correctAnswer[0], correctAnswer[1] );
+		}
+		
+		function testAnswer( time ) {
+			if ( feedback || timeRemaining < 1 )
+				return;
+			if (( time[0] == correctAnswer[0] ) && ( time[1] == correctAnswer[1] )) {
+				message("Correct", 'rgba(80,60,120,.5)' );
+				setTimeout( round, CORRECT_DELAY );
+				feedback = true;
+				document.getElementById("correct").innerHTML = ''+(++correct);
+			} else {
+				message("Nope", 'rgba(180,80,80,.5)', MISS_DELAY );
+				document.getElementById("missed").innerHTML = ''+(++missed);
+			}
+		}
+		
+		function init() {
+			document.getElementById("answers").onclick = function(e) {
+				if (!e) 
+					var e = window.event
+				var target;
+				if (e.target) target = e.target;
+				else if (e.srcElement) target = e.srcElement;
+				
+				if ( target.nodeName == 'BUTTON' ) {
+					target.blur();
+					var time = target.innerHTML.split(":");
+					testAnswer( [parseInt1(time[0]), parseInt1(time[1])] );
+				}
+			}
+			
+			gameTimeTimer = setInterval( timeGame, 1000 );
+			
+			round();
+		}
+		
+		function timeGame() {
+			timeRemaining--;
+			if ( timeRemaining < 1 ) {
+				clearInterval( gameTimeTimer );
+				document.getElementById('answers').innerHTML = '';
+			}
+			
+			var seconds = timeRemaining % 60;
+			var time = Math.floor(timeRemaining/60) + ':' + (seconds < 10 ? '0' : '' ) + seconds;
+			document.getElementById('time-remaining').innerHTML = time;
+		}
+		
+		function round() {
+			feedback = false;
+			if ( timeRemaining < 1 )
+				return;
+			var times = generateTimes().concat(generateTimes()).concat(generateTimes());
+			var options = choose( times, 5 );
+			var pad = function(x) { return (x < 10 ? '0' : '') + x }
+			var buttons = '';
+			for ( var i=0; i < 5; i++ )
+				buttons += "<button>" + options[i][0] + ':' + pad(options[i][1]) + "</button>";
+			document.getElementById('answers').innerHTML = buttons;
+			
+			correctAnswer = choose(options, 1)[0];
+			drawClock( correctAnswer[0], correctAnswer[1] );
+		}
+		
+	</script>
+</head>
+<body onload="init()">
+<canvas id="game" width="420" height="420"></canvas>
+<div id="answers"></div>
+<div id="stats">
+	<label for="correct">correct:</label>
+	<span id="correct">0</span>
+	<span id="time-remaining">&nbsp;</span>
+	<label for="missed">missed:</label>
+	<span id="missed">0</span>
+</div>
+</body>
+</html>

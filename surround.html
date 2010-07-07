@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>surround</title>
+    <meta name="generator" content="TextMate http://macromates.com/">
+    <meta name="author" content="sivoh">
+    <style type="text/css">
+        body                    { font-face:Hoefler Text,Times New Roman; font-size:.83em;}
+        #display                { display:block; float: left; margin: 0 10px 0 0px; }
+        #controls               { padding: 40px 0 0 0; }
+        #controls label         { display: block; }
+        #controls fieldset      { border:none; padding: 0px; margin: 0 0 20px 0; }
+        #controls input.chooser { width: 50%; display: inline; margin-right: 20px; }
+    </style>
+    <script type="text/javascript" charset="utf-8">
+    function lpad( n, x ) {
+        var s = n+'';
+        while ( s.length < x ) s = '0'+s
+        return s;
+    }
+    
+    function rtrim( s ) {
+        while (s[s.length-1] == '0') s = s.substring(0,s.length-1);
+        return s;
+    }
+    
+    function m_to_u( measurement ) {
+        if ( ! isNaN(measurement) )
+            return measurement;
+        var m = /^((\d+)')?\s*((\d*(\.\d*)?)")?\s*$/.exec(measurement);
+        if ( ! m )
+            return 0;
+        return ((m[2] ? parseInt(m[2])*12 :  0) + (m[4] ? parseFloat(m[4]) : 0)) * PIXELS_PER_INCH;
+    }
+    
+    function u_to_m( value ) {
+        var inches = value / PIXELS_PER_INCH;
+        var feet = Math.floor(inches / 12);
+        var iinches = Math.floor(inches%12);
+        var finches = Math.round( Math.round((inches%12-iinches)*8)*125 );
+        if ( finches >= 1000 ) {
+            finches -= 1000;
+            iinches += 1;
+        }
+        return (feet ? feet+"' " : '') + iinches + (finches ? '.'+rtrim(lpad(finches,3)) : '') + '"';
+    }
+
+    function Predefine( name, style, width, height, hoffset, voffset ) {
+        return { name:name, style:style, width:m_to_u(width), height:m_to_u(height), 
+                 hoffset:m_to_u(hoffset||""), voffset:m_to_u(voffset||""), }
+    }
+    
+    function Variable( name, defaultValue, min, max ) {
+        return { name:name, min:m_to_u(min), value:m_to_u(defaultValue), max:m_to_u(max),
+                 set_value:function(v) { this.value=m_to_u(v); } };
+    }
+    
+    var PIXELS_PER_INCH = 4.9;
+    var WALL_STYLE =      {stroke:'rgb(0,0,0)',width:1},
+        WOOD_STYLE =      {fill:'rgb(253,253,250)',stroke:'rgb(0,0,0)',width:1},
+        SURROUND_STYLE =  {fill:'rgb(253,253,250)',stroke:'rgb(253,253,250)', width:.5},
+        MARBLE_STYLE =    {fill:'rgb(30,30,30)'},
+        MANTLE_STYLE =    {fill:'rgb(150,80,30)', stroke:'rgb(75,40,15)',width:.5},
+        FIREPLACE_STYLE = {fill:'rgb(80,80,80)'};
+        
+    var HEARTH_TOP = m_to_u( "11.5\"" );
+    var FIREPLACE_WIDTH = m_to_u( "3' 4.5\"" );
+    var FIREPLACE_HEIGHT = m_to_u( "2' 8.125\"" );
+    var STONE_SIDE_WIDTH = m_to_u( "10.75\"" );
+    var PREDEFINES = [
+        Predefine( 'WALL', WALL_STYLE,   "13'4.5\"", "8'" ),
+        Predefine( 'HEARTH_FACE', WOOD_STYLE,   "6'1\"",  "10\"" ),
+        Predefine( 'HEARTH_TOP', MARBLE_STYLE, "6'5\"", "1.5\"", 0, "10\""),
+        Predefine( 'FIREPLACE', FIREPLACE_STYLE, FIREPLACE_WIDTH, FIREPLACE_HEIGHT, 0, HEARTH_TOP ),
+        Predefine( 'LEFT_SIDE', MARBLE_STYLE, STONE_SIDE_WIDTH, FIREPLACE_HEIGHT, -(FIREPLACE_WIDTH+STONE_SIDE_WIDTH)/2, HEARTH_TOP),
+        Predefine( 'RIGHT_SIDE', MARBLE_STYLE, STONE_SIDE_WIDTH, FIREPLACE_HEIGHT, (FIREPLACE_WIDTH+STONE_SIDE_WIDTH)/2, HEARTH_TOP),
+        Predefine( 'TOP_SIDE', MARBLE_STYLE, "4'9.5\"", "10\"", 0, HEARTH_TOP + FIREPLACE_HEIGHT),
+        Predefine( 'BASE_SHOE', WOOD_STYLE, "6'1.5\"", "3\"")
+    ];
+    
+    var VARIABLES = {
+        SURROUND_INNER_WIDTH  : Variable( "Surround Inner Width",  "4' 2.5\" ","3' 2.5\" ","5' 2.5\" "),
+        SURROUND_OUTER_WIDTH  : Variable( "Surround Outer Width",  "5' 8.5\" ","4' 8.5\" ","6' 8.5\" "),
+        SURROUND_INNER_HEIGHT : Variable( "Surround Inner Height", "3' 2\"   ","2' 8\"   ","3' 8\"   "),
+        SURROUND_OUTER_HEIGHT : Variable( "Surround Outer Height", "4'  .5\" ","3' 6.5\" ","4' 6.5\" "),
+        MANTLE_WIDTH          : Variable( "Mantle Width",          "6'       ","5'       ","7'       "),
+        MANTLE_HEIGHT         : Variable( "Mantle Height",         "   1.75\"","   1\"   ","   2.5\" "),
+        TRIM_WIDTH            : Variable( "Trim Width",            "   1.5\" ","   1\"   ","   2.0\" "),
+        FOOT_WIDTH            : Variable( "Surround Foot Width",   "   10\"  ","   6\"   ","2'       "),
+        FOOT_HEIGHT           : Variable( "Surround Foot Height",  "   8\"   ","   4\"   ","1'       "),
+    };
+        
+    
+    function el(id) { return document.getElementById(id); }
+    function each(a,f) { for (var i=0,l=a.length; i<l; i++) f(a[i]); }
+    function eachm(m,f) { for (var k in m) f(k,m[k]); }
+
+    function init() {
+        var controls = '';
+        eachm( VARIABLES, function(vname, v) {
+            controls += '<fieldset><label>'+v.name+'</label><input type="range" id="in-'+vname+'" min="'
+                     +(v.min*10000)+'" max="'+(v.max*10000)+'" step="'+(.125*PIXELS_PER_INCH*10000)+'" value="'
+                     +(v.value*10000)+'" class="chooser"/><span id="dis-'+vname+'" class="display">'
+                     +u_to_m( v.value )+'</span></fieldset>';
+        });
+        el('controls').innerHTML = controls;
+        eachm( VARIABLES, function(vname, v) {
+            el('in-'+vname).onchange = function() {
+                v.value = parseFloat( el('in-'+vname).value ) / 10000;
+                el('dis-'+vname).innerHTML = u_to_m( v.value );
+                draw();
+            };
+        });
+        draw();     
+    }
+    
+    function draw() {
+        var ctx = el('display').getContext('2d');
+        ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+
+        each( PREDEFINES, function(p) { 
+            box(ctx, p.style, p.width, p.height, p.hoffset, p.voffset ); 
+        });
+        
+        var siw = VARIABLES.SURROUND_INNER_WIDTH.value;
+        var sow = VARIABLES.SURROUND_OUTER_WIDTH.value;
+        var sih = VARIABLES.SURROUND_INNER_HEIGHT.value;
+        var soh = VARIABLES.SURROUND_OUTER_HEIGHT.value;
+        var tw =  VARIABLES.TRIM_WIDTH.value;
+        var mw = VARIABLES.MANTLE_WIDTH.value;
+        var mh = VARIABLES.MANTLE_HEIGHT.value;
+        var fw = VARIABLES.FOOT_WIDTH.value;
+        var fh = VARIABLES.FOOT_HEIGHT.value;
+        var center = ctx.canvas.width / 2
+
+        // surround sides
+        box( ctx, SURROUND_STYLE, (sow - siw)/2, sih, -(sow+siw)/4, HEARTH_TOP );
+        box( ctx, SURROUND_STYLE, (sow - siw)/2, sih, (sow+siw)/4, HEARTH_TOP );
+        
+        // surround top
+        box( ctx, SURROUND_STYLE, sow, soh-sih, 0, HEARTH_TOP + sih );
+        
+        // trim
+        ctx.strokeStyle = 'rgb(0,0,0)';
+        ctx.lineWidth = 1;
+        line( ctx, center-sow/2, HEARTH_TOP, center-sow/2, HEARTH_TOP + soh );
+        line( ctx, center+sow/2, HEARTH_TOP, center+sow/2, HEARTH_TOP + soh );
+        line( ctx, center-siw/2, HEARTH_TOP, center-siw/2, HEARTH_TOP + sih );
+        line( ctx, center+siw/2, HEARTH_TOP, center+siw/2, HEARTH_TOP + sih );
+        line( ctx, center-siw/2, HEARTH_TOP + sih, center+siw/2, HEARTH_TOP + sih );
+        box( ctx, WOOD_STYLE, (sow-siw)/2 - 2*tw, sih-fh-tw, -(sow+siw)/4, HEARTH_TOP+fh+tw ); 
+        box( ctx, WOOD_STYLE, (sow-siw)/2 - 2*tw, sih-fh-tw, (sow+siw)/4, HEARTH_TOP+fh+tw ); 
+        box( ctx, WOOD_STYLE, (sow-siw)/2 - 2*tw, soh-sih-2*tw, -(sow+siw)/4, HEARTH_TOP + sih + tw ); 
+        box( ctx, WOOD_STYLE, (sow-siw)/2 - 2*tw, soh-sih-2*tw, (sow+siw)/4, HEARTH_TOP + sih + tw ); 
+        box( ctx, WOOD_STYLE, siw, soh-sih-2*tw, 0, HEARTH_TOP + sih + tw ); 
+        
+        // feet
+        box( ctx, WOOD_STYLE, fw, fh, -(sow+siw)/4, HEARTH_TOP ); 
+        box( ctx, WOOD_STYLE, fw, fh, (sow+siw)/4, HEARTH_TOP ); 
+        
+        // mantle
+        box( ctx, MANTLE_STYLE, mw, mh, 0, HEARTH_TOP + soh );
+    }
+    
+    function line( ctx, x1, y1, x2, y2 ) {
+        var ctxHeight = ctx.canvas.height;
+        ctx.beginPath();
+        ctx.moveTo( x1, ctxHeight - y1 );
+        ctx.lineTo( x2, ctxHeight - y2 );
+        ctx.closePath();
+        ctx.stroke();
+    }
+        
+    function box( ctx, style, width, height, hoffset, voffset ) {
+        var ctxWidth = ctx.canvas.width;
+        var ctxHeight = ctx.canvas.height;
+        hoffset = hoffset || 0
+        voffset = voffset || 0
+        ctx.beginPath();
+        ctx.rect( (ctxWidth - width)/2 + hoffset, ctxHeight - voffset, width, -height );
+        ctx.closePath();
+        if ( style.fill ) {
+            ctx.fillStyle = style.fill;
+            ctx.fill();
+        }
+        if ( style.stroke ) {
+            ctx.strokeStyle = style.stroke;
+            ctx.lineWidth = style.width || 1;
+            ctx.stroke();
+        }
+    }
+    
+    </script>
+</head>
+<body onload="init()">
+<canvas id="display" width="800" height="500"></canvas>
+<div id="controls">
+</div> 
+</body>
+</html>

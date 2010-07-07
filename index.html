@@ -5,68 +5,122 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-	<title>carbonfive/html5-playground @ GitHub</title>
+	<title>carbonfive/html5-playground</title>
 	
-	<style type="text/css">
+    <link href=' http://fonts.googleapis.com/css?family=Vollkorn' rel='stylesheet' type='text/css'/>	
+    <style type="text/css">
 		body {
   		margin-top: 1.0em;
-  		background-color: #bf1eca;
-		  font-family: "Helvetica,Arial,FreeSans";
+  		background-color: #fff;
+		  font-family: "Volkhorn,Helvetica,Arial,FreeSans";
+		  line-height: 1.6em;
   		color: #000000;
     }
     #container {
       margin: 0 auto;
       width: 700px;
     }
-		h1 { font-size: 3.8em; color: #40e135; margin-bottom: 3px; }
+    h1,h2,h3,h4,h5 { margin: 0; padding: 0; font-weight: normal;} 
+		h1 { font-size: 2.25em; color: #000; margin: 1em 0 .5em 0; text-align: center;}
 		h1 .small { font-size: 0.4em; }
-		h1 a { text-decoration: none }
-		h2 { font-size: 1.5em; color: #40e135; }
-    h3 { text-align: center; color: #40e135; }
-    a { color: #40e135; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
+		h2 { font-size: 1.5em; color: #000; text-align: center; margin: 1.5em 0 0 0; }
+    h3 { text-align: center; color: #000; margin: 0 0 1em 0; }
+		h4 { font-size: 1.4em; }
+    ul { margin: 30px 0 0 0; padding: 0; }
+    li { list-style: none; margin: 0 20px 20px 0; }
+    li h4 { margin: 0 0 0.4em 60px; }
+    li p { margin: 0 0 0 60px; font-size: .9em; }
+    li img { float: left; border: 1px solid #666; margin: 5px 20px 10px 0;}
+    a { color: #047; text-decoration: none; }
+    a:hover { text-decoration: underline;}
 	</style>
-	
+  
 </head>
 
 <body>
-  <a href="http://github.com/carbonfive/html5-playground"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-
   <div id="container">
+    <h1>A Few Experiments with HTML 5</h1>
+    <h3>Alex Cruikshank - <a href="http://www.carbonfive.com">Carbon Five</a></h3>
 
-    <div class="download">
-      <a href="http://github.com/carbonfive/html5-playground/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/carbonfive/html5-playground/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
-
-    <h1><a href="http://github.com/carbonfive/html5-playground">html5-playground</a>
-      <span class="small">by <a href="http://github.com/carbonfive">carbonfive</a></span></h1>
-
-    <div class="description">
-      HTML 5 Playground
-    </div>
-
-    
-
-    <h2>Download</h2>
+    <h2>Single Page Applications</h2>
     <p>
-      You can download this project in either
-      <a href="http://github.com/carbonfive/html5-playground/zipball/master">zip</a> or
-      <a href="http://github.com/carbonfive/html5-playground/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/carbonfive/html5-playground</pre>
+      The following pages are exercises in minimalist programming.  They are all written using
+      only HTML, JavaScript and CSS, and are completely contained within a single HTML file 
+      (i.e. no JavaScript frameworks or external images).  The goal of the exercises is to examine
+      the feasibility of developing small GUI applications to solve day-to-day problems entirely in
+      the browser.  I was also hoping to familiarize myself with some new HTML 5 technologies 
+      like the canvas tag.  They were all written for fun, so no effort was spent on browser 
+      compatibility (they all run in Safari 4+ and all but "surround" run on Firefox 3 on OS X).
+      
+      <ul>
+        <li>
+          <a href="snowballs.html"><img src="snowballs-thumb.jpg"/></a>
+          <h4><a href="snowballs.html">Snowballs</a></h4>
+          <p>Snowballs is a video game that was mostly designed by my 7 year old daughter, Ada.  
+            She started with a drawing that contained a maze filled with dots, a player and some 
+            monsters, and she told me you throw snowballs at the monsters and build walls to block them.
+            I convinced her we could get roughly the same effect as walls if you could freeze the 
+            monsters, and then began developing.  We started iterating and she continued to contribute
+            ideas, which, somewhat surprisingly, always made the game more fun.  It's implemented as
+            a single canvas tag using a JavaScript interval as a run loop.  The maze, players, monsters
+            and snowballs are all drawn with JS functions using the Canvas drawing API.  Since this
+            application uses the Canvas tag, it won't run in Internet Explorer or older versions of
+            other browsers.
+          </p>
+        </li>
+        <li>
+          <a href="flashcards.html"><img src="flashcards-thumb.jpg"/></a>
+          <h4><a href="flashcards.html">Flashcards</a></h4>
+          <p>I wrote flashcards one evening when Ada's teacher suggested using flash cards to
+            help her memorize the words she shouldn't need to sound out.  The idea is that the
+            parent clicks the spacebar when the child reads the word and they work together to
+            reduce the time needed to read all the words.  The application doesn't need any graphics 
+            (other than some external images at the end), so it doesn't use any HTML 5 features.
+          </p>
+        </li>
+        <li>
+          <a href="timetest.html"><img src="timetest-thumb.jpg"/></a>
+          <h4><a href="timetest.html">Timetest</a> - <a href="timetest.html#easy">Timetest (easy)</a></h4>
+          <p>
+            Like Flashcards, Timetest came about to help Ada with her schoolwork.  In this case, she
+            was getting frustrated with a lesson on analog clocks, so I wrote this application to
+            turn it into a game.  The goal is to answer as many questions as possible in the given
+            time. It turned out that the test was more difficult than it really needed to be, so
+            I created a switch by adding '#easy' to the url to constrain times to 5 minute intervals
+            and label the minutes.  Since this
+            application uses the Canvas tag, it won't run in Internet Explorer or older versions of
+            other browsers.
+          </p>
+        </li>
+        <li>
+          <a href="arithmetic.html"><img src="arithmetic-thumb.jpg"/></a>
+          <h4><a href="arithmetic.html">Arithmetic</a></a></h4>
+          <p>
+            Arithmetic is another education application designed to drill addition with carrying.
+            It provides spaces at the top which you can click to mark a carry from the previous column.  It doesn't
+            have any fancy HTML 5 features but it does have a lot of stats.
+          </p>
+        </li>
+        <li>
+          <a href="surround.html"><img src="surround-thumb.jpg"/></a>
+          <h4><a href="surround.html">Surround</a></a></h4>
+          <p>
+            My wife and I had designed a fireplace surround and mantel for our remodeled living room,
+            but, when it came time to actually buy the materials and build the thing, we realized
+            we didn't know exactly how to scale it.  Since the design was entirely composed of
+            rectangles, I realized it would be possible to build a simple one-off CAD program
+            to help us agree on some dimensions.  The application makes use of the canvas tag and
+            the new HTML 5 slider inputs (which aren't currently supported in Firefox).  It translates
+            between pixels and feet/inches constrained to an 8th of an inch to make the measurements
+            more useful in the shop.
+          </p>
+        </li>
+      </ul>
     </p>
 
     <div class="footer">
       get the source code on GitHub : <a href="http://github.com/carbonfive/html5-playground">carbonfive/html5-playground</a>
+      or right click on the applications and choose "view source" :).
     </div>
 
   </div>
