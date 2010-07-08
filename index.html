@@ -60,8 +60,9 @@
             She started with a drawing that contained a maze filled with dots, a player and some 
             monsters, and she told me you throw snowballs at the monsters and build walls to block them.
             I convinced her we could get roughly the same effect as walls if you could freeze the 
-            monsters, and then began developing.  We started iterating and she continued to contribute
-            ideas, which, somewhat surprisingly, always made the game more fun.  It's implemented as
+            monsters and then began developing.  We started iterating and she continued to contribute
+            ideas which, somewhat surprisingly, always made the game more fun.  The arrow keys move 
+            the player and the spacebar launches a snowball.  It's implemented as
             a single canvas tag using a JavaScript interval as a run loop.  The maze, players, monsters
             and snowballs are all drawn with JS functions using the Canvas drawing API.  Since this
             application uses the Canvas tag, it won't run in Internet Explorer or older versions of
@@ -84,35 +85,35 @@
           <p>
             Like Flashcards, Timetest came about to help Ada with her schoolwork.  In this case, she
             was getting frustrated with a lesson on analog clocks, so I wrote this application to
-            turn it into a game.  The goal is to answer as many questions as possible in the given
-            time. It turned out that the test was more difficult than it really needed to be, so
-            I created a switch by adding '#easy' to the url to constrain times to 5 minute intervals
-            and label the minutes.  Since this
+            make it a game.  The goal is to answer as many questions as possible in the given
+            time. The test turned out to be more difficult than it really needed to be, so
+            I created an easy version (accessed by adding '#easy' to the url) that constrains times 
+            to 5 minute intervals and labels the minutes.  Since this
             application uses the Canvas tag, it won't run in Internet Explorer or older versions of
             other browsers.
           </p>
         </li>
         <li>
           <a href="arithmetic.html"><img src="arithmetic-thumb.jpg"/></a>
-          <h4><a href="arithmetic.html">Arithmetic</a></a></h4>
+          <h4><a href="arithmetic.html">Arithmetic</a></h4>
           <p>
-            Arithmetic is another education application designed to drill addition with carrying.
-            It provides spaces at the top which you can click to mark a carry from the previous column.  It doesn't
-            have any fancy HTML 5 features but it does have a lot of stats.
+            Arithmetic is another educational application designed to drill addition with carrying.
+            It provides spaces at the top which you can click to mark a carry from the previous column.  
+            It doesn't have any fancy HTML 5 features but it does have a lot of stats.
           </p>
         </li>
         <li>
           <a href="surround.html"><img src="surround-thumb.jpg"/></a>
-          <h4><a href="surround.html">Surround</a></a></h4>
+          <h4><a href="surround.html">Surround</a></h4>
           <p>
             My wife and I had designed a fireplace surround and mantel for our remodeled living room,
             but, when it came time to actually buy the materials and build the thing, we realized
             we didn't know exactly how to scale it.  Since the design was entirely composed of
             rectangles, I realized it would be possible to build a simple one-off CAD program
             to help us agree on some dimensions.  The application makes use of the canvas tag and
-            the new HTML 5 slider inputs (which aren't currently supported in Firefox).  It translates
-            between pixels and feet/inches constrained to an 8th of an inch to make the measurements
-            more useful in the shop.
+            the new HTML 5 slider inputs (which are currently only supported in Safari and Chrome 
+            that I know of).  It translates between pixels and feet/inches constrained to an 8th of 
+            an inch to make the measurements more useful in the shop.
           </p>
         </li>
       </ul>
