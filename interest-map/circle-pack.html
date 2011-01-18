@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Circle Pack</title>
+    <style type="text/css">
+        body {  background-color: #fff; padding: 0 2em; }
+        #display { display: block; margin: 0 auto; border: 1px solid #ccc;  }
+    </style>
+    <script type="text/javascript" charset="utf-8">
+    /*
+    This algorithm hinges on the abilility to find a new configuration for two overlapping circles such that they become tangent
+    and the deviation from their original positions is minimized.  The symetry of the problem suggests that the solution leaves
+    the centers of the circles on the line between the original centers and leaves the midpoint between the centers the same.
+    If the centers are (x1,y1) and (x2,y2) and the radius is r, then the midpoint is 
+    (mx,my) = (x2+(x1-x2)/2, y2+(y1-y2)/2) and the distance betwen the original centers is d = sqrt((x1-x2)^2 + (y1-y2)^2).
+    Then (x1',y1') = (2r(x1-mx)/d + mx, 2r(y1-my)/d + my) and (x1',y1') = (2r(x1-mx)/d + mx, 2r(y1-my)/d + my)
+    */
+    var CARD_STYLE = { fill:'rgba(0,0,0,.05)', stroke:'rgba(0,0,0,.5)',width:.25 };
+    var TOUCH_STYLE = { fill:'rgba(255,200,0,.10)', stroke:'rgba(100,80,0,.5)',width:.25 };
+    var REVISED_STYLE = { fill:'rgba(0,255,0,.10)', stroke:'rgba(0,0,0,.5)',width:.75 };
+    var OUTLINE = { stroke:'rgba(0,0,0,.5)',width:.75 };
+    var POINTS = 60;
+    var RADIUS = 30;
+    var ITERATIONS = 20;
+    var DEGREE = .2;
+    
+    var MARGIN = 80;
+    
+    var points = [];
+    var revised = [];
+    
+    function el(id) { return document.getElementById(id); }
+    function each(a,f) { for (var i=0,l=a.length; i<l; i++) f(a[i],i); }
+    function eachm(m,f) { for (var k in m) f(k,m[k]); }
+
+    function init() {
+      for (var i=0; i < POINTS; i++)
+        points.push(  {x:Math.random() * 840, y:Math.random() * 440, style:CARD_STYLE, index:i} );
+      points.sort( function(p1,p2) { return p1.x-p2.x;})
+      draw();     
+    }
+    
+    function draw() {
+        var ctx = el('display').getContext('2d');
+        ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+        var width = ctx.canvas.width - 2*MARGIN, height = ctx.canvas.height - 2*MARGIN;
+        var originalByIndex = [];
+        var start, i, j, p, po, rad2 = 2.0*RADIUS, rad2sqr=rad2*rad2, dx, dy, mx, my, d;
+
+        for (i=0; p = points[i]; i++) {
+          originalByIndex[p.index] = {x:p.x,y:p.y};
+          for (j=i-1; j>=0; j--) {
+            po = points[j];
+            dx = p.x - po.x;
+            if (dx > rad2) break;            
+            dy = p.y - po.y;
+            if (Math.abs(dy) < rad2) {              
+              if ( dy*dy+dx*dx < rad2sqr)
+                p.style = po.style = TOUCH_STYLE;     
+            }         
+          }
+        }        
+        
+        each( points, function(point, index) {
+          var x = MARGIN + point.x,  y = MARGIN + point.y; 
+          circle( ctx, x, y, RADIUS, point.style );
+//          center_text(ctx, point.index, x, y, { font:'8pt Verdana', color:'#ccc', yoffset:2})
+        });
+
+        start = new Date();
+
+        for (var it=0; it < ITERATIONS; it++) {
+          points.sort( function(p1,p2) { return p1.x-p2.x;} );
+          for (i=0; p = points[i]; i++) {
+            for (j=i-1; po = points[j]; j--) {              
+              dx = p.x - po.x;
+              if (Math.abs(dx) >= rad2) break;            
+              dy = p.y - po.y;
+              if (Math.abs(dy) < rad2) { 
+                d =  dy*dy + dx*dx;            
+                if ( d < rad2sqr ) {
+                  mx = po.x+dx/2; my = po.y+dy/2;
+                  d = Math.sqrt(d);
+                  ratio = d + DEGREE*(2*RADIUS - d);
+                  p.x = ratio*(p.x - mx)/d + mx;    p.y = ratio*(p.y - my)/d + my;
+                  po.x = ratio*(po.x - mx)/d + mx;  po.y = ratio*(po.y - my)/d + my;
+                  p.style = po.style = REVISED_STYLE;
+                }
+              }
+            }
+          }        
+        }
+        
+        console.debug( new Date().getTime() - start.getTime() );
+        
+        each( points, function(point, index) {
+          var x = MARGIN + point.x,  y = MARGIN + point.y; 
+          if ( point.style == REVISED_STYLE ) {
+            circle( ctx, x, y, RADIUS, point.style );
+//            center_text(ctx, point.index, x, y, { font:'8pt Verdana', color:'#6f6', yoffset:2})
+            op = originalByIndex[point.index];
+            ctx.strokeStyle='#00f';ctx.lineWidth=1; line(ctx,x,y,MARGIN+op.x,MARGIN+op.y);
+          } else if ( point.style == CARD_STYLE ) {
+            circle( ctx, x, y, RADIUS, OUTLINE );
+          }
+        });        
+    }
+    
+    function circle( ctx, x, y, r, style ) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI*2, true);
+      ctx.closePath();
+      drawPath(ctx, style);
+    }
+    
+    function drawPath( ctx, style ) {
+      if ( style.fill ) {
+          if ( style.shadow ) {
+            var s = style.shadow;
+            ctx.shadowOffsetX = s.x;
+            ctx.shadowOffsetY = s.y;
+            ctx.shadowBlur = s.blur;
+            ctx.shadowColor = s.color;
+          }
+          ctx.fillStyle = style.fill;
+          ctx.fill();
+      }
+      if ( style.stroke ) {
+  			  ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+          ctx.strokeStyle = style.stroke;
+          ctx.lineWidth = style.width || 1;
+          ctx.stroke();
+      }
+    }
+    
+    function center_text( ctx, text, x, y, fontStyle ) {
+			ctx.fillStyle = fontStyle.color;
+			ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+			ctx.font = fontStyle.font;
+			
+			var metrics = ctx.measureText(text);
+			
+			ctx.beginPath();
+			ctx.fillText(text, x - metrics.width/2.0, y + fontStyle.yoffset );
+		}
+
+    function line( ctx, x1, y1, x2, y2 ) {
+        ctx.beginPath();
+        ctx.moveTo( x1, y1 );
+        ctx.lineTo( x2, y2 );
+        ctx.closePath();
+        ctx.stroke();
+    }
+    
+    </script>
+</head>
+<body onload="init()">
+<canvas id="display" width="1000" height="600"></canvas>
+</body>
+</html>
