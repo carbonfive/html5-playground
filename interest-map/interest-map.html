@@ -69,9 +69,16 @@
             		{name:'JonR', color:'#4ADDF4',    skills:[13,17,27,29,30],  interests:[8,9,17,18,28]},
             		{name:'James', color:'#4A7788',   skills:[17,18,26],        interests:[7,12,21,26,32]},
               ];
+    var skill_matrix = [[.54,.80,.56,  0,.34], [.42,.76,.34,.04,.82], [.30,.16,.32,.06,.84], [.44,.14,.58,.14,.62], [.52,.78,.28,.02,.88],
+                        [.56,.64,.88,.28,.08], [.58,.60,.22,.38,.56], [.70,  1,.94,.30,.06], [.74,.88,.76,.54,.42], [.80,.98,.80,.52,.74],
+                        [.76,.86,.78,.50,.78], [.72,.70,.96,.64,.04], [.40,.96,.46,.32,.18], [  0,.26,.50,.92,  1], [.62,  0,.48,.60,.90],
+                        [.64,.08,.86,.26,.10], [.48,.10,.36,.16,.76], [  1,.42,.10,.80,.50], [.95,.48,.60,.82,.28], [.32,.50,.98,  1,.02],
+                        [.30,.40,.68,.88,.24], [.22,.20,.44,.72,.46], [.04,.52,.12,.74,.80], [.26,.44,.20,.90,.94], [.28,.46,.62,.86,.26],
+                        [.46,.12,.60,.12,.12], [.38,.06,.40,.42,.60], [.67,.20,.74,.62,.36], [.36,.04,.14,.44,.52], [.12,.36,.80,.94,.96],
+                        [.20,.38,.30,.70,.86], [.18,.56,.42,.84,.66], [.02,.22,.16,.98,.70], [.10,.34,  1,.96,  0]];
 
-    var AXES = ['client side/server side', 'extrovert/introvert', 'creative/technical'];
-    var skill_matrix, skill_data, cards, axis=[0,1], buttons, arrow_visibility=0, animation, canvas_caches = [];
+    var AXES = ['server side/client side', 'technical/creative', 'c5 core/c5 expansion', 'public facing/in house', 'trendy/old school'];
+    var skill_data, cards, axis=[0,1], buttons, arrow_visibility=0, animation, canvas_caches = [];
     
     function el(id) { return document.getElementById(id); }
     function as(a,s,e) { return Array.prototype.slice.apply(a,e?[s,e]:(s?[s]:[0])); }
@@ -84,7 +91,6 @@
 
     function init() {
       var tween = MoCapTween();
-      skill_matrix = SKILLS.map( function() { return AXES.map( function() { return Math.random(); }); });
       skill_data = SKILLS.map( function(s) { return {name:s, have:[], want:[] }; });
       each(PEOPLE, function(p) {
         each(p.skills, function(i) { skill_data[i].have.push(p); });
@@ -195,7 +201,7 @@
 			ctx.translate( -TAG_RADIUS -  + 4*Math.random(), 0 ); ctx.rotate( -r );
       var width = ctx.measureText(person.name).width + 10;
 			ctx.shadowBlur = 2; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2, ctx.shadowColor='rgba(0, 0, 0, 0.2)';
-      ctx.fillStyle = person.color; ctx.strokeStyle = '#000';
+      ctx.fillStyle = person.color; ctx.strokeStyle = '#000', ctx.lineWidth=.2;
       ctx.rect( -width/2, -10, width, 20 );
       ctx.fill(); ctx.stroke();
       center_text( ctx, person.name, 00, 0, NAME_FONT );
@@ -203,6 +209,7 @@
     }
     
     function draw_axes( ctx ) {
+      ctx.save();
 			ctx.fillStyle = AXIS_FONT.color; ctx.font = AXIS_FONT.font;
 			ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 			ctx.strokeStyle = 'rgb(0,0,0)'; ctx.lineWidth = .1;
@@ -211,6 +218,7 @@
       var text = AXES[axis[0]].split('/'), textwidth = [ctx.measureText(text[0]).width,ctx.measureText(text[1]).width],
           textx = [MARGIN[3] - CLEAR_RADIUS, WIDTH + MARGIN[3] + CLEAR_RADIUS  - textwidth[1]], 
           texty = MARGIN[0]+HEIGHT+50+AXIS_FONT.height, line_offset = AXIS_FONT.height/2;
+    
 			ctx.fillText(text[0], textx[0], texty ); ctx.fillText(text[1], textx[1], texty );
 			line( ctx, textx[0]+textwidth[0]+20, texty - line_offset, textx[1]-20, texty - line_offset );
 			
@@ -222,6 +230,7 @@
 			ctx.restore();
 			
 			each(buttons, function(b) { b.draw(ctx); });
+			ctx.restore();
     }
     
     function compute_arrows() {
@@ -367,6 +376,7 @@
     }
     
     function drawPath( ctx, style ) {
+      ctx.save();
       if ( style.fill ) {
           if ( style.shadow ) {
             var s = style.shadow;
@@ -384,6 +394,7 @@
           ctx.lineWidth = style.width || 1;
           ctx.stroke();
       }
+      ctx.restore();
     }
     
     </script>
