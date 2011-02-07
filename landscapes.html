@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Landscapes</title>
+	<style type="text/css" media="screen">
+    html { height: 100%; }
+	  body { background-color: #fff; }
+		#display { display:block; margin: 0px auto; }
+	</style>
+	<script type="text/javascript" charset="utf-8">
+	  var GR=1.61803399, CURVE_FACTOR = .95, L_MIN=2, L_MAX=25, BUFFER = L_MAX*GR, ITERATIONS=1000,
+	      LINE_WIDTH=.2;
+    var fills = ['rgba(200,230,240,.97)','rgba(230,255,220,.8)','rgba(240,240,237,.6)','rgba(255,255,255,.7)'];
+	  
+    function el(id) { return document.getElementById(id); }
+    
+		function init() {
+		  draw();
+		  setInterval(draw,5000);
+		}
+		
+		function draw() {
+		  var ctx = el('display').getContext('2d'), w=ctx.canvas.width, h=ctx.canvas.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = LINE_WIDTH;
+      
+      var dir={x:0,y:1}, next_dir={x:0,y:0}, pos={x:300,y:300}, next={x:0,y:0}, cp1, cp2, dist;
+      
+      ctx.beginPath();
+      ctx.moveTo( pos.x, pos.y );
+
+      for ( var fsi=0,fs; fs=fills[fsi]; fsi++) {
+        CURVE_FACTOR = 1-Math.pow(Math.random(),3);
+        ctx.fillStyle = fs;
+        ctx.moveTo( pos.x, pos.y );
+        for ( var i=0; i < ITERATIONS; i++ ) {
+          dist = L_MIN+(L_MAX-L_MIN)*Math.random();
+          next_dir = (Math.random()>=.5) ? {x:-dir.y,y:dir.x} : {x:dir.y,y:-dir.x};
+          next = { x: pos.x + dist*(dir.x*GR + next_dir.x), y:pos.y + dist*(dir.y*GR + next_dir.y) };
+          if ( next.x<BUFFER ) next_dir.x = next_dir.x ? 1 : 0;
+          if ( next.x>w-BUFFER ) next_dir.x = next_dir.x ? -1 : 0;
+          if ( next.y<BUFFER ) next_dir.y = next_dir.y ? 1 : 0;
+          if (next.y>h-BUFFER )  next_dir.y = next_dir.y ? -1 : 0;
+          next = { x: pos.x + dist*(dir.x*GR + next_dir.x), y:pos.y + dist*(dir.y*GR + next_dir.y) };
+          cp1 = { x: pos.x + Math.abs(dir.x)*(next.x-pos.x) * CURVE_FACTOR, 
+                  y: pos.y + Math.abs(dir.y)*(next.y-pos.y) * CURVE_FACTOR };
+          cp2 = { x: next.x - Math.abs(next_dir.x)*(next.x-pos.x)*CURVE_FACTOR, 
+                  y: next.y - Math.abs(next_dir.y)*(next.y-pos.y)*CURVE_FACTOR };
+          ctx.bezierCurveTo( cp1.x, cp1.y, cp2.x, cp2.y, next.x, next.y);
+          dir = next_dir;
+          pos = next;
+        }
+        
+        ctx.stroke();
+        ctx.fill();
+      }
+		}
+	</script>
+</head>
+<body onload="init()">
+<canvas id="display" width="970" height="600"></canvas>
+</body>
+</html>
