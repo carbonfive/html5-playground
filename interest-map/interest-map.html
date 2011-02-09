@@ -16,11 +16,6 @@
     <script type="text/javascript" charset="utf-8">
     /*
       TODO:
-      - Animate switching of axis
-          Animate labels
-      - Implement professional develompment arrows.
-          implement some way to hide/show arrrow (with animation)
-      - Use real data for axes.
       - Aquire correct colors for skills and interests (and implement interest color)
       - Have spacing algorithm account for boundaries
       - Ajust for viewports other than current screen (make clear radius and card scale a function of viewport size)
@@ -33,6 +28,7 @@
     var ABUTTON_STYLE_ON = { fill:'#fff6e6', shadow:{x:1, y:4, blur:4, color:'rgba(0, 0, 0, 0.3)'} };
     var CARD_FONT =  { font:'bold 8pt Courier', color:'#555', yoffset:10, height:14};
     var NAME_FONT =  { font:'bold 9px Chalkboard,Comic Sans', color:'rgb(255,255,255)', yoffset:9, height:9};
+    var INTEREST_NAME_FONT =  { font:'bold 9px Chalkboard,Comic Sans', color:'#ffffff', yoffset:9, height:9};
     var AXIS_FONT =  { font:'bold 21px Helvetica,Arial', color:'rgba(0,0,0,.3)', yoffset:9, height:10};
     var ABUTTON_FONT_OFF =  { font:'bold 12px Helvetica,Arial', color:'rgba(0,0,0,.2)', yoffset:12, height:15};
     var ABUTTON_FONT_ON =  { font:'bold 12px Helvetica,Arial', color:'rgba(0,0,0,.4)', yoffset:12, height:15};
@@ -40,55 +36,94 @@
     var MARGIN = [75,75,75,100], WIDTH = 1000-MARGIN[1]-MARGIN[3], HEIGHT = 650-MARGIN[0]-MARGIN[2], CARD_SCALE=.75, 
         CARD_RADIUS = 40, TAG_RADIUS = 50, CACHE_RADIUS=70, CLEAR_RADIUS = 50, ITERATIONS = 20, DEGREE = .5, CARD_SHADOW = 2,
         AXIS_ANIM=700;
+
+
+        var SKILLS = ['Blogging','Networking','Sales','Mentoring','Public\nSpeaking','Field\nResearch\n& User\nEmpathy','Coffee',
+                      'Brain-\nstorming','Interaction\nDesign','Visual\nDesign','Information\nArch.','Prototyping',
+                      'Brand\nDevelopment','IT','Quality\nAssurance','User\nTesting','Client/\nProject\nManagement',
+                      'HTML &\nCSS','JavaScript','Functional\nProgramming','Objective\nC','Security','Performance\nTuning',
+                      'Java','Ruby','Coaching/\nBoot-\nstrapping','Agile\nProcess','Analytics','TDD','SQL\nDatabases','Search',
+                      'Modeling','App.\nDeployment','NoSQL\nDatabases','PR','Jumping','Copywriting'];
+
+        var PEOPLE = [
+                  {name:'Alex', color:'#EFD279',    skills:[17,18,19,29,30], interests:[8,9,10,11,33]},
+                  {name:'Alon', color:'#95CBE9',    skills:[2,3,4,18,24], interests:[3,7,11,24,25]},
+                  {name:'Jeremy', color:'#024769',  skills:[14,16,24,26,31], interests:[6,17,18,19,24]},
+                  {name:'Mike', color:'#AFD775',    skills:[4,22,26,31,33], interests:[18,19,24,33,34]},
+                  {name:'Susana', color:'#2C5700',  skills:[5,7,8,9,12], interests:[3,5,7,9,17]},
+                  {name:'Dave', color:'#DE9D7F',    skills:[10,11,15,16,17], interests:[0,4,5,7,35]},
+                  {name:'Courtney', color:'#194E84',skills:[6,10,16,17,27], interests:[11,12,18,24,26]},
+                  {name:'Clark', color:'#3B6B9C',   skills:[9,17,18,19], interests:[9,11,12,19,26]},
+                  {name:'Kasha', color:'#1F242A',   skills:[9,15,16,17,18], interests:[8,9,10,18,24]},
+                  {name:'Rob', color:'#37414A',     skills:[13,23,26,30,32], interests:[11,18,21,24,33]},
+                  {name:'Rudy', color:'#60BB22',    skills:[], interests:[]},
+                  {name:'Jared', color:'#F2BABB',   skills:[18,19,23,24,29], interests:[0,3,28,31,33]},
+                  {name:'Brian', color:'#FFC200',   skills:[], interests:[]},
+                  {name:'Xian', color:'#000000',    skills:[3,25,26,32,33], interests:[15,18,22,25,33]},
+                  {name:'X2', color:'#FF5B00',      skills:[17,18,24,28], interests:[7,8,13,28,33]},
+                  {name:'Don', color:'#B80028',     skills:[2,11,16], interests:[5,6,34]},
+                  {name:'Ingar', color:'#84002E',   skills:[3,6,13,18,24], interests:[7,10,19,22,33]},
+                  {name:'Erik', color:'#4AC0F2',    skills:[6,13,22,23,29], interests:[6,19,21,22]},
+        					{name:'Ben', color:'#666333',     skills:[18,24,27,29,30], interests:[11,19,25,32,33]},
+        					{name:'Jonah', color:'#4ABBF2',   skills:[17,20,24,26,28], interests:[0,8,20,21,27]},
+        					{name:'JonR', color:'#4ADDF4',    skills:[13,17,27,29,30], interests:[8,9,17,18,28]},
+        					{name:'James', color:'#4A7788',   skills:[17,18,26], interests:[7,12,21,26,32]}
+                  ];
     
-    var SKILLS = ['Blogging','Networking','Sales','Mentoring','Public\nSpeaking','Field\nResearch\n& User\nEmpathy','Coffee',
-                  'Brain-\nstorming','Interaction\nDesign','Visual\nDesign','Information\nArch.','Prototyping',
-                  'Brand\nDevelopment','IT','Quality\nAssurance','User\nTesting','Client/\nProject\nManagement',
-                  'HTML &\nCSS','JavaScript','Functional\nProgramming','Objective\nC','Security','Performance\nTuning',
-                  'Java','Ruby','Coaching/\nBoot-\nstrapping','Agile\nProcess','Analytics','TDD','SQL\nDatabases','Search',
-                  'Modeling','App.\nDeployment','NoSQL\nDatabases'];
-    var PEOPLE = [
-                {name:'Alex', color:'#EFD279',    skills:[17,18,19,29,30],  interests:[8,9,10,11,33]},
-                {name:'Alon', color:'#95CBE9',    skills:[2,3,4,18,24],     interests:[3,7,11,24,25]},
-                {name:'Jeremy', color:'#024769',  skills:[4,16,24,26,31],   interests:[6,17,18,19,24]},
-                {name:'Mike', color:'#AFD775',    skills:[4,22,26,31,33],   interests:[18,19,24,33,33]},
-                {name:'Susana', color:'#2C5700',  skills:[5,7,8,9,12],      interests:[3,5,7,9,17]},
-                {name:'Dave', color:'#DE9D7F',    skills:[10,11,15,16,17],  interests:[0,4,5,7,33]},
-                {name:'Courtney', color:'#194E84',skills:[6,10,16,17,27],   interests:[11,12,18,24,26]},
-                {name:'Clark', color:'#3B6B9C',   skills:[9,17,18,19],      interests:[9,11,12,19,25]},
-                {name:'Kasha', color:'#1F242A',   skills:[9,15,16,17,18],   interests:[8,9,10,18,24]},
-                {name:'Rob', color:'#37414A',     skills:[13,23,26,30,32],  interests:[11,18,21,24,33]},
-                {name:'Jared', color:'#F2BABB',   skills:[19,19,23,24,29],  interests:[0,3,28,31,33]},
-                {name:'Xian', color:'#000000',    skills:[3,25,26,32,33],   interests:[3,18,22,25,33]},
-                {name:'X2', color:'#FF5B00',      skills:[17,18,24,28],     interests:[7,8,13,28,33]},
-                {name:'Don', color:'#B80028',     skills:[2,11,16],         interests:[5,6,33]},
-                {name:'Ingar', color:'#84002E',   skills:[3,6,13,18,24],    interests:[7,19,22,33]},
-                {name:'Erik', color:'#4AC0F2',    skills:[6,13,22,23,29],   interests:[6,19,21,22]},
-            		{name:'Ben', color:'#666333',     skills:[18,24,27,29,30],  interests:[11,19,25,32,33]},
-            		{name:'Jonah', color:'#4ABBF2',   skills:[17,20,24,26,28],  interests:[0,8,20,21,27]},
-            		{name:'JonR', color:'#4ADDF4',    skills:[13,17,27,29,30],  interests:[8,9,17,18,28]},
-            		{name:'James', color:'#4A7788',   skills:[17,18,26],        interests:[7,12,21,26,32]},
-              ];
     var skill_matrix = [[.54,.80,.56,  0,.34], [.42,.76,.34,.04,.82], [.30,.16,.32,.06,.84], [.44,.14,.58,.14,.62], [.52,.78,.28,.02,.88],
                         [.56,.64,.88,.28,.08], [.58,.60,.22,.38,.56], [.70,  1,.94,.30,.06], [.74,.88,.76,.54,.42], [.80,.98,.80,.52,.74],
                         [.76,.86,.78,.50,.78], [.72,.70,.96,.64,.04], [.40,.96,.46,.32,.18], [  0,.26,.50,.92,  1], [.62,  0,.48,.60,.90],
                         [.64,.08,.86,.26,.10], [.48,.10,.36,.16,.76], [  1,.42,.10,.80,.50], [.95,.48,.60,.82,.28], [.32,.50,.98,  1,.02],
                         [.30,.40,.68,.88,.24], [.22,.20,.44,.72,.46], [.04,.52,.12,.74,.80], [.26,.44,.20,.90,.94], [.28,.46,.62,.86,.26],
                         [.46,.12,.60,.12,.12], [.38,.06,.40,.42,.60], [.67,.20,.74,.62,.36], [.36,.04,.14,.44,.52], [.12,.36,.80,.94,.96],
-                        [.20,.38,.30,.70,.86], [.18,.56,.42,.84,.66], [.02,.22,.16,.98,.70], [.10,.34,  1,.96,  0]];
+                        [.20,.38,.30,.70,.86], [.18,.56,.42,.84,.66], [.02,.22,.16,.98,.70], [.10,.34,  1,.96,  0], [.4 ,.73,.4 ,.1 ,.7 ],
+                        [.5 ,.5 ,.5 ,.5 ,.5 ], [.87,.96,.82,.5 ,.6 ]];
 
     var AXES = ['server side/client side', 'technical/creative', 'c5 core/c5 expansion', 'public facing/in house', 'trendy/old school'];
-    var skill_data, cards, axis=[0,1], buttons, arrow_visibility=0, animation, canvas_caches = [];
+    var skill_data, cards, axis=[0,1], buttons, arrow_visibility=0, animation, canvas_caches = [], over_person;
     
     function el(id) { return document.getElementById(id); }
     function as(a,s,e) { return Array.prototype.slice.apply(a,e?[s,e]:(s?[s]:[0])); }
     function each(a,f) { for (var i=0,l=a.length; i<l; i++) f(a[i],i); }
+    function rev_each(a,f) { for (var i=a.length-1; i>=0; i--) f(a[i],i); }
     function eachm(m,f) { for (var k in m) f(k,m[k]); }
     function take( a ) { return a.splice(parseInt(Math.random()*a.length),1)[0] }
     function event(f) { return function(e) { return f( e || window.event) }; }
     function curry(f) { var a=as(arguments,1); return function(){return f.apply(this,a.concat(as(arguments)));}}
     function interp( x0, x1, t ) { return x0 + t*(x1-x0); }
 
+    function DecorateTransforms(ctx) {
+      if ( ctx.project ) return;
+      function project( p, t ) {  return {x:t.a*p.x+t.b*p.y+t.c, y:t.d*p.x+t.e*p.y+t.f}; }
+      function compose( t2, t1 ) { return {a:t1.a*t2.a+t1.d*t2.b, b:t1.b*t2.a+t1.e*t2.b, c:t1.c*t2.a+t1.f*t2.b+t2.c,
+                                           d:t1.a*t2.d+t1.d*t2.e, e:t1.b*t2.d+t1.e*t2.e, f:t1.c*t2.d+t1.f*t2.e+t2.f}; }
+      function translate(x,y) { return {a:1,b:0,c:x,d:0,e:1,f:y}; }
+      function rotate(theta) { return {a:Math.cos(theta),b:-Math.sin(theta),c:0,d:Math.sin(theta),e:Math.cos(theta),f:0}; }
+      function scale(x,y) { return {a:x,b:0,c:0,d:0,e:y,f:0}; }
+      function ident() { return {a:1,b:0,c:0,d:0,e:1,f:0}; }
+      function clone(t) { return {a:t.a,b:t.b,c:t.c,d:t.d,e:t.e,f:t.f}; }
+      function inverse(t) { var det=t.a*t.e-t.b*t.d; return { a:t.e/det,  b:-t.b/det, c:(t.b*t.f-t.c*t.e)/det, 
+                                                              d:-t.d/det, e:t.a/det,  f:(t.c*t.d-t.a*t.f)/det}; }
+      function current() { return transforms[transforms.length-1]; }
+      function set(t) { transforms[transforms.length-1] = t; }
+      function apply_to(t) { transforms[transforms.length-1] = compose(current(),t); }
+      function proxy_before(o,fn,f) { var oldf=o[fn]; o[fn]=function(){ f.apply(o,arguments); oldf.apply(o,arguments); };}
+      var transforms = [ident()];
+
+      proxy_before(ctx,'save',function() { transforms.push(clone(current())); });
+      proxy_before(ctx,'restore',function() { if (transforms.length>1) transforms.pop(); else transforms[0]=ident(); });
+      proxy_before(ctx,'scale',function(x,y) { apply_to(scale(x,y)); });
+      proxy_before(ctx,'rotate',function(theta) { apply_to(rotate(theta)); });
+      proxy_before(ctx,'translate',function(x,y) { apply_to(translate(x,y)); });
+      proxy_before(ctx,'transform',function(a,b,c,d,e,f) { apply_to({a:a,b:b,c:c,d:d,e:e,f:f}); });
+      proxy_before(ctx,'setTransform',function(a,b,c,d,e,f) { set({a:a,b:b,c:c,d:d,e:e,f:f}); });
+
+      ctx.project = function(p,t) { return project(p,t?t:current()); }
+      ctx.project_inverse = function(p,t) { return project(p,inverse(t?t:current())); }
+      ctx.get_transform = function() { return current(); }      
+      return ctx;
+    }
+                                         
     function init() {
       var tween = MoCapTween();
       skill_data = SKILLS.map( function(s) { return {name:s, have:[], want:[] }; });
@@ -109,12 +144,18 @@
           			  AxisButton( AXIS_FONT.height/2 + 5, MARGIN[0] + HEIGHT + 15, 1,
                           curry(change_axis,1,-1)),
                   ToggleArrowsButton() ];
-          			  
+
+      var ctx = DecorateTransforms(el('display').getContext('2d'));
       el('display').onmousemove = event(function(e) { 
         var canvas = el('display');
-        each(buttons, function(b) { b.mouseMove( e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop ); }); 
+        each(buttons, function(b) { b.mouseMove( e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop ); });
+        if ( arrow_visibility >= 1 ) {
+          var x=e.clientX-canvas.offsetLeft, y=e.clientY-canvas.offsetTop, over=null;
+          rev_each(PEOPLE, function(p) { over = over_arrow(ctx,p,x,y) || over; });
+          if (over != over_person) { over_person = over; draw(1); }
+        }
       });
-      el('display').onclick = event(function(e) {  each(buttons, function(b) { b.click(); }); });
+      el('display').onclick = event(function(e) {  each(buttons, function(b) { b.click(); }); });      
       
       space_cards();
       draw(1);     
@@ -131,8 +172,10 @@
         ctx.restore();
         if ( arrow_visibility > 0 ) {
           ctx.save(); ctx.globalAlpha = arrow_visibility;
-          draw_arrows(ctx, t);
+          each( PEOPLE, function(p) { draw_interest_arrow(ctx,p,t); });
           ctx.restore();
+          
+          if (over_person) draw_over_arrow(ctx,over_person,t);
         }
         draw_axes(ctx);
     }
@@ -156,7 +199,7 @@
       }, 50);
     }
     
-    function space_cards(total) {
+    function space_cards() {
       var i, j, c1, c2, rad2 = 2.0*CLEAR_RADIUS, rad2sqr=rad2*rad2, dx, dy, mx, my, d;
       for (var it=0; it < ITERATIONS; it++) {
         cards.sort( function(c1,c2) { return c1.x-c2.x;} );
@@ -171,6 +214,8 @@
               ratio = d + DEGREE*(rad2 - d);
               c1.x = ratio*(c1.x - mx)/d + mx;  c1.y = ratio*(c1.y - my)/d + my;
               c2.x = ratio*(c2.x - mx)/d + mx;  c2.y = ratio*(c2.y - my)/d + my;
+              c1.x = Math.max(Math.min(c1.x,WIDTH),0); c1.y = Math.max(Math.min(c1.y,HEIGHT),0);
+              c2.x = Math.max(Math.min(c2.x,WIDTH),0); c2.y = Math.max(Math.min(c2.y,HEIGHT),0);
             }
           }
         }        
@@ -187,24 +232,31 @@
   			var r = Math.random() * 2 * Math.PI, cnum = skill_data[index].have.length+skill_data[index].want.length
   			    angle = 2 * Math.PI / cnum, positions = [];
   			for (var i=0; i < cnum; i++) { positions.push(r+(.5-Math.random())*angle/2); r += angle; }
-        each( skill_data[index].have, function(p) { nametag( context, CACHE_RADIUS, CACHE_RADIUS, p, take(positions) ); });
-        each( skill_data[index].want, function(p) { nametag( context, CACHE_RADIUS, CACHE_RADIUS, p, take(positions) ); });
+        each( skill_data[index].have, function(p) { nametag( context, CACHE_RADIUS, CACHE_RADIUS, p, take(positions), false ); });
+        each( skill_data[index].want, function(p) { nametag( context, CACHE_RADIUS, CACHE_RADIUS, p, take(positions), true ); });
         canvas_caches[index] = context.canvas;
       }      
       ctx.drawImage( canvas_caches[index], parseInt(x-CACHE_RADIUS), parseInt(y-CACHE_RADIUS) );
     }
     
     
-    function nametag( ctx, cardx, cardy, person, r ) {
-			ctx.font = NAME_FONT.font;
+    function nametag( ctx, cardx, cardy, person, r, interest ) {
 			ctx.save(); ctx.translate( cardx, cardy ); ctx.rotate( r + .4*(Math.random()-.5) ); 
 			ctx.translate( -TAG_RADIUS -  + 4*Math.random(), 0 ); ctx.rotate( -r );
+			draw_nametag( ctx, person, interest );
+      ctx.restore();
+    }
+    
+    function draw_nametag( ctx, person, interest ) {
+      ctx.save(); ctx.beginPath();
+      ctx.font = NAME_FONT.font;
       var width = ctx.measureText(person.name).width + 10;
 			ctx.shadowBlur = 2; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2, ctx.shadowColor='rgba(0, 0, 0, 0.2)';
-      ctx.fillStyle = person.color; ctx.strokeStyle = '#000', ctx.lineWidth=.2;
+      ctx.fillStyle = interest ? lighten_color(person.color) : person.color; 
+      ctx.strokeStyle = interest ? '#ff0' : '#000', ctx.lineWidth=.1;
       ctx.rect( -width/2, -10, width, 20 );
       ctx.fill(); ctx.stroke();
-      center_text( ctx, person.name, 00, 0, NAME_FONT );
+      center_text( ctx, person.name, 00, 0, interest ? INTEREST_NAME_FONT : NAME_FONT );
       ctx.restore();
     }
     
@@ -244,23 +296,34 @@
       });
     }
     
-    
-    function draw_arrows( ctx, t ) {
+    function draw_interest_arrow(ctx,p,t) {
+      var tween = p.tween(t); arrow = p.arrow.map(function(a,i) {return interp(p.old_arrow[i],a,tween);});
+      var dx = (arrow[2]-arrow[0])*WIDTH, dy = (arrow[3]-arrow[1])*HEIGHT, length = Math.sqrt(dx*dx+dy*dy);
+      ctx.save();
       ctx.lineWidth = 4;
       ctx.strokeStyle = 'rgba(255,255,255,.6)';
-      each( PEOPLE, function(p) {
-        var tween = p.tween(t); arrow = p.arrow.map(function(a,i) {return interp(p.old_arrow[i],a,tween);});
-        ctx.save();
-        ctx.translate(MARGIN[3]+WIDTH*arrow[0],MARGIN[0]+arrow[1]*HEIGHT); 
-        ctx.fillStyle = p.color;
-        var dx = (arrow[2]-arrow[0])*WIDTH, dy = (arrow[3]-arrow[1])*HEIGHT, length = Math.sqrt(dx*dx+dy*dy);
-        ctx.rotate( ((Math.abs(dx) < .000001) ? Math.PI/2 : (Math.atan(dy/dx) - (dx>0?0:Math.PI)  ) )); 
-        draw_arrow(ctx, length, Math.min(15,length/2), Math.min(8,length/4));
-        ctx.stroke();
-        ctx.fill();
-        ctx.restore();
-      });
+      ctx.translate(MARGIN[3]+WIDTH*arrow[0],MARGIN[0]+arrow[1]*HEIGHT); 
+      ctx.fillStyle = p.color;
+      ctx.rotate( ((Math.abs(dx) < .000001) ? Math.PI/2 : (Math.atan(dy/dx) - (dx>0?0:Math.PI)  ) )); 
+      p.arrow_transform = ctx.get_transform();
+      draw_arrow(ctx, length, Math.min(15,length/2), Math.min(8,length/4));
+      ctx.stroke();
+      ctx.fill();
+      ctx.restore();
+    }
 
+    function draw_over_arrow(ctx,p,t) {
+      draw_interest_arrow(ctx,p,t);
+      var skill_point = ctx.project({x:-50,y:0}, p.arrow_transform);
+      ctx.save(); ctx.translate(skill_point.x,skill_point.y); ctx.scale(2,2);
+      draw_nametag(ctx,p);
+      ctx.restore();
+    }
+    
+    function over_arrow( ctx, person, x, y ) {
+      var dx = (person.arrow[2]-person.arrow[0])*WIDTH, dy = (person.arrow[3]-person.arrow[1])*HEIGHT;
+      var length = Math.sqrt(dx*dx+dy*dy), p = ctx.project_inverse({x:x,y:y},person.arrow_transform);
+      return ( p.x >= 0 && p.x <= length && Math.abs(p.y) <= 10 ) ? person : null;
     }
     
     function Button( top, right, bottom, left, draw, f ) {
@@ -396,6 +459,13 @@
       }
       ctx.restore();
     }
+
+    function lighten_color(c) {      
+      var factor=.3, hc = parseInt(c.replace('#',''),16), rgb = {r:(hc>>16)&255, g:(hc>>8)&255, b:(hc&255)};
+      lrgb = {r:parseInt(rgb.r+(255-rgb.r)*factor), g:parseInt(rgb.g+(255-rgb.g)*factor), b:parseInt(rgb.b+(255-rgb.b)*factor)};
+      return '#' + ((lrgb.r<<16) + (lrgb.g<<8) + lrgb.b).toString(16);
+    }
+    
     
     </script>
 </head>
