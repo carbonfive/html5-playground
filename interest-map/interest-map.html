@@ -37,37 +37,36 @@
         CARD_RADIUS = 40, TAG_RADIUS = 50, CACHE_RADIUS=70, CLEAR_RADIUS = 50, ITERATIONS = 20, DEGREE = .5, CARD_SHADOW = 2,
         AXIS_ANIM=700;
 
+    var SKILLS = ['Blogging','Networking','Sales','Mentoring','Public\nSpeaking','Field\nResearch\n& User\nEmpathy','Coffee',
+                  'Brain-\nstorming','Interaction\nDesign','Visual\nDesign','Information\nArch.','Prototyping',
+                  'Brand\nDevelopment','IT','Quality\nAssurance','User\nTesting','Client/\nProject\nManagement',
+                  'HTML &\nCSS','JavaScript','Functional\nProgramming','Objective\nC','Security','Performance\nTuning',
+                  'Java','Ruby','Coaching/\nBoot-\nstrapping','Agile\nProcess','Analytics','TDD','SQL\nDatabases','Search',
+                  'Modeling','App.\nDeployment','NoSQL\nDatabases','PR','Jumping','Copywriting'];
 
-        var SKILLS = ['Blogging','Networking','Sales','Mentoring','Public\nSpeaking','Field\nResearch\n& User\nEmpathy','Coffee',
-                      'Brain-\nstorming','Interaction\nDesign','Visual\nDesign','Information\nArch.','Prototyping',
-                      'Brand\nDevelopment','IT','Quality\nAssurance','User\nTesting','Client/\nProject\nManagement',
-                      'HTML &\nCSS','JavaScript','Functional\nProgramming','Objective\nC','Security','Performance\nTuning',
-                      'Java','Ruby','Coaching/\nBoot-\nstrapping','Agile\nProcess','Analytics','TDD','SQL\nDatabases','Search',
-                      'Modeling','App.\nDeployment','NoSQL\nDatabases','PR','Jumping','Copywriting'];
-
-        var PEOPLE = [
-                  {name:'Alex', color:'#EFD279',    skills:[17,18,19,29,30], interests:[8,9,10,11,33]},
-                  {name:'Alon', color:'#95CBE9',    skills:[2,3,4,18,24], interests:[3,7,11,24,25]},
-                  {name:'Jeremy', color:'#024769',  skills:[14,16,24,26,31], interests:[6,17,18,19,24]},
-                  {name:'Mike', color:'#AFD775',    skills:[4,22,26,31,33], interests:[18,19,24,33,34]},
-                  {name:'Susana', color:'#2C5700',  skills:[5,7,8,9,12], interests:[3,5,7,9,17]},
-                  {name:'Dave', color:'#DE9D7F',    skills:[10,11,15,16,17], interests:[0,4,5,7,35]},
-                  {name:'Courtney', color:'#194E84',skills:[6,10,16,17,27], interests:[11,12,18,24,26]},
-                  {name:'Clark', color:'#3B6B9C',   skills:[9,17,18,19], interests:[9,11,12,19,26]},
-                  {name:'Kasha', color:'#1F242A',   skills:[9,15,16,17,18], interests:[8,9,10,18,24]},
-                  {name:'Rob', color:'#37414A',     skills:[13,23,26,30,32], interests:[11,18,21,24,33]},
-                  {name:'Rudy', color:'#60BB22',    skills:[], interests:[]},
-                  {name:'Jared', color:'#F2BABB',   skills:[18,19,23,24,29], interests:[0,3,28,31,33]},
-                  {name:'Brian', color:'#FFC200',   skills:[], interests:[]},
-                  {name:'Xian', color:'#000000',    skills:[3,25,26,32,33], interests:[15,18,22,25,33]},
-                  {name:'X2', color:'#FF5B00',      skills:[17,18,24,28], interests:[7,8,13,28,33]},
-                  {name:'Don', color:'#B80028',     skills:[2,11,16], interests:[5,6,34]},
-                  {name:'Ingar', color:'#84002E',   skills:[3,6,13,18,24], interests:[7,10,19,22,33]},
-                  {name:'Erik', color:'#4AC0F2',    skills:[6,13,22,23,29], interests:[6,19,21,22]},
-        					{name:'Ben', color:'#666333',     skills:[18,24,27,29,30], interests:[11,19,25,32,33]},
-        					{name:'Jonah', color:'#4ABBF2',   skills:[17,20,24,26,28], interests:[0,8,20,21,27]},
-        					{name:'JonR', color:'#4ADDF4',    skills:[13,17,27,29,30], interests:[8,9,17,18,28]},
-        					{name:'James', color:'#4A7788',   skills:[17,18,26], interests:[7,12,21,26,32]}
+    var PEOPLE = [
+                  {name:'Alex', color:'#EFD279',    skills:[17,18,19,29,30],  interests:[8,9,10,11,33]},
+                  {name:'Alon', color:'#95CBE9',    skills:[2,3,4,18,24],     interests:[3,7,11,24,25]},
+                  {name:'Jeremy', color:'#024769',  skills:[14,16,24,26,31],  interests:[6,17,18,19,24]},
+                  {name:'Mike', color:'#AFD775',    skills:[4,22,26,31,33],   interests:[18,19,24,33,34]},
+                  {name:'Susana', color:'#2C5700',  skills:[5,7,8,9,12],      interests:[3,5,7,9,17]},
+                  {name:'Dave', color:'#DE9D7F',    skills:[10,11,15,16,17],  interests:[0,4,5,7,35]},
+                  {name:'Courtney', color:'#194E84',skills:[6,10,16,17,27],   interests:[11,12,18,24,26]},
+                  {name:'Clark', color:'#3B6B9C',   skills:[9,17,18,19],      interests:[9,11,12,19,26]},
+                  {name:'Kasha', color:'#1F242A',   skills:[9,15,16,17,18],   interests:[8,9,10,18,24]},
+                  {name:'Rob', color:'#37414A',     skills:[13,23,26,30,32],  interests:[11,18,21,24,33]},
+                  {name:'Rudy', color:'#60BB22',    skills:[],                interests:[]},
+                  {name:'Jared', color:'#F2BABB',   skills:[18,19,23,24,29],  interests:[0,3,28,31,33]},
+                  {name:'Brian', color:'#FFC200',   skills:[],                interests:[]},
+                  {name:'Xian', color:'#000000',    skills:[3,25,26,32,33],   interests:[15,18,22,25,33]},
+                  {name:'X2', color:'#FF5B00',      skills:[17,18,24,28],     interests:[7,8,13,28,33]},
+                  {name:'Don', color:'#B80028',     skills:[2,11,16],         interests:[5,6,34]},
+                  {name:'Ingar', color:'#84002E',   skills:[3,6,13,18,24],    interests:[7,10,19,22,33]},
+                  {name:'Erik', color:'#4AC0F2',    skills:[6,13,22,23,29],   interests:[6,19,21,22]},
+                  {name:'Ben', color:'#666333',     skills:[18,24,27,29,30],  interests:[11,19,25,32,33]},
+                  {name:'Jonah', color:'#4ABBF2',   skills:[17,20,24,26,28],  interests:[0,8,20,21,27]},
+                  {name:'JonR', color:'#4ADDF4',    skills:[13,17,27,29,30],  interests:[8,9,17,18,28]},
+                  {name:'James', color:'#4A7788',   skills:[17,18,26],        interests:[7,12,21,26,32]}
                   ];
     
     var skill_matrix = [[.54,.80,.56,  0,.34], [.42,.76,.34,.04,.82], [.30,.16,.32,.06,.84], [.44,.14,.58,.14,.62], [.52,.78,.28,.02,.88],
@@ -134,14 +133,14 @@
       });
       cards = skill_matrix.map( function(a,i) {var c={index:i, tween:randomizeTween(.1,.3,tween)}; 
                                                    c.x=c.lx=a[0]*WIDTH; c.y=c.ly=a[1]*HEIGHT; return c; } );
-      compute_arrows();
+      compute_arrowsows();
       buttons = [ AxisButton( MARGIN[3] + WIDTH + CLEAR_RADIUS + 10, MARGIN[0] + HEIGHT + 44 + AXIS_FONT.height, 0,
                           curry(change_axis,0,1)),
-          			  AxisButton( MARGIN[3] - CLEAR_RADIUS - 10, MARGIN[0] + HEIGHT + 44 + AXIS_FONT.height, 2,
+                  AxisButton( MARGIN[3] - CLEAR_RADIUS - 10, MARGIN[0] + HEIGHT + 44 + AXIS_FONT.height, 2,
                           curry(change_axis,0,-1)),
-          			  AxisButton( AXIS_FONT.height/2 + 5, MARGIN[0]-CLEAR_RADIUS - 10, 3,
+                  AxisButton( AXIS_FONT.height/2 + 5, MARGIN[0]-CLEAR_RADIUS - 10, 3,
                           curry(change_axis,1,1)),
-          			  AxisButton( AXIS_FONT.height/2 + 5, MARGIN[0] + HEIGHT + 15, 1,
+                  AxisButton( AXIS_FONT.height/2 + 5, MARGIN[0] + HEIGHT + 15, 1,
                           curry(change_axis,1,-1)),
                   ToggleArrowsButton() ];
 
@@ -229,9 +228,9 @@
         context.scale(CARD_SCALE, CARD_SCALE);
         circle( context, CACHE_RADIUS, CACHE_RADIUS, CARD_RADIUS, CARD_STYLE);
         center_text( context, skill_data[index].name, CACHE_RADIUS, CACHE_RADIUS, CARD_FONT );
-  			var r = Math.random() * 2 * Math.PI, cnum = skill_data[index].have.length+skill_data[index].want.length
-  			    angle = 2 * Math.PI / cnum, positions = [];
-  			for (var i=0; i < cnum; i++) { positions.push(r+(.5-Math.random())*angle/2); r += angle; }
+        var r = Math.random() * 2 * Math.PI, cnum = skill_data[index].have.length+skill_data[index].want.length
+            angle = 2 * Math.PI / cnum, positions = [];
+        for (var i=0; i < cnum; i++) { positions.push(r+(.5-Math.random())*angle/2); r += angle; }
         each( skill_data[index].have, function(p) { nametag( context, CACHE_RADIUS, CACHE_RADIUS, p, take(positions), false ); });
         each( skill_data[index].want, function(p) { nametag( context, CACHE_RADIUS, CACHE_RADIUS, p, take(positions), true ); });
         canvas_caches[index] = context.canvas;
@@ -241,9 +240,9 @@
     
     
     function nametag( ctx, cardx, cardy, person, r, interest ) {
-			ctx.save(); ctx.translate( cardx, cardy ); ctx.rotate( r + .4*(Math.random()-.5) ); 
-			ctx.translate( -TAG_RADIUS -  + 4*Math.random(), 0 ); ctx.rotate( -r );
-			draw_nametag( ctx, person, interest );
+      ctx.save(); ctx.translate( cardx, cardy ); ctx.rotate( r + .4*(Math.random()-.5) ); 
+      ctx.translate( -TAG_RADIUS -  + 4*Math.random(), 0 ); ctx.rotate( -r );
+      draw_nametag( ctx, person, interest );
       ctx.restore();
     }
     
@@ -251,7 +250,7 @@
       ctx.save(); ctx.beginPath();
       ctx.font = NAME_FONT.font;
       var width = ctx.measureText(person.name).width + 10;
-			ctx.shadowBlur = 2; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2, ctx.shadowColor='rgba(0, 0, 0, 0.2)';
+      ctx.shadowBlur = 2; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2, ctx.shadowColor='rgba(0, 0, 0, 0.2)';
       ctx.fillStyle = interest ? lighten_color(person.color) : person.color; 
       ctx.strokeStyle = interest ? '#ff0' : '#000', ctx.lineWidth=.1;
       ctx.rect( -width/2, -10, width, 20 );
@@ -262,27 +261,27 @@
     
     function draw_axes( ctx ) {
       ctx.save();
-			ctx.fillStyle = AXIS_FONT.color; ctx.font = AXIS_FONT.font;
-			ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
-			ctx.strokeStyle = 'rgb(0,0,0)'; ctx.lineWidth = .1;
-			ctx.beginPath();
+      ctx.fillStyle = AXIS_FONT.color; ctx.font = AXIS_FONT.font;
+      ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = 'rgb(0,0,0)'; ctx.lineWidth = .1;
+      ctx.beginPath();
 
       var text = AXES[axis[0]].split('/'), textwidth = [ctx.measureText(text[0]).width,ctx.measureText(text[1]).width],
           textx = [MARGIN[3] - CLEAR_RADIUS, WIDTH + MARGIN[3] + CLEAR_RADIUS  - textwidth[1]], 
           texty = MARGIN[0]+HEIGHT+50+AXIS_FONT.height, line_offset = AXIS_FONT.height/2;
     
-			ctx.fillText(text[0], textx[0], texty ); ctx.fillText(text[1], textx[1], texty );
-			line( ctx, textx[0]+textwidth[0]+20, texty - line_offset, textx[1]-20, texty - line_offset );
-			
-			ctx.save(); ctx.rotate(Math.PI/2);
+      ctx.fillText(text[0], textx[0], texty ); ctx.fillText(text[1], textx[1], texty );
+      line( ctx, textx[0]+textwidth[0]+20, texty - line_offset, textx[1]-20, texty - line_offset );
+      
+      ctx.save(); ctx.rotate(Math.PI/2);
       text = AXES[axis[1]].split('/'); textwidth = [ctx.measureText(text[0]).width,ctx.measureText(text[1]).width];
       textx = [MARGIN[0] - CLEAR_RADIUS, HEIGHT+MARGIN[0]-ctx.measureText(text[1]).width], texty = -5;
-			ctx.fillText(text[0], textx[0], texty ); ctx.fillText(text[1], textx[1], texty);
-			line( ctx, textx[0]+textwidth[0]+20, texty-line_offset, textx[1]-20, texty-line_offset );
-			ctx.restore();
-			
-			each(buttons, function(b) { b.draw(ctx); });
-			ctx.restore();
+      ctx.fillText(text[0], textx[0], texty ); ctx.fillText(text[1], textx[1], texty);
+      line( ctx, textx[0]+textwidth[0]+20, texty-line_offset, textx[1]-20, texty-line_offset );
+      ctx.restore();
+      
+      each(buttons, function(b) { b.draw(ctx); });
+      ctx.restore();
     }
     
     function compute_arrows() {
@@ -361,8 +360,8 @@
             ctx.closePath();
 
             if ( over ) {
-            	ctx.shadowBlur = 6; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0, ctx.shadowColor='rgb(255,255,255)';
-            	ctx.fillStyle = AXIS_FONT.color; ctx.fill();
+              ctx.shadowBlur = 6; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0, ctx.shadowColor='rgb(255,255,255)';
+              ctx.fillStyle = AXIS_FONT.color; ctx.fill();
             }
             ctx.stroke(); ctx.restore();
           }, f )
@@ -405,18 +404,18 @@
     }
         
     function center_text( ctx, text, x, y, fontStyle ) {
-			ctx.fillStyle = fontStyle.color; ctx.font = fontStyle.font;
-			ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
-			ctx.beginPath();
+      ctx.fillStyle = fontStyle.color; ctx.font = fontStyle.font;
+      ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+      ctx.beginPath();
 
-			var lines = text.split('\n'), metrics;
+      var lines = text.split('\n'), metrics;
       y = y - fontStyle.height*lines.length/2 + fontStyle.yoffset;
-			for ( var i=0,l=lines.length; i<l; i++ ) {
-  			metrics = ctx.measureText(lines[i]);
-  			ctx.fillText(lines[i], x - metrics.width/2.0, y );
-  			y += fontStyle.height;
-			}
-		}
+      for ( var i=0,l=lines.length; i<l; i++ ) {
+        metrics = ctx.measureText(lines[i]);
+        ctx.fillText(lines[i], x - metrics.width/2.0, y );
+        y += fontStyle.height;
+      }
+    }
 
     function circle( ctx, x, y, r, style ) {
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2, true); ctx.closePath();
@@ -452,7 +451,7 @@
           ctx.fill();
       }
       if ( style.stroke ) {
-  			  ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+          ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
           ctx.strokeStyle = style.stroke;
           ctx.lineWidth = style.width || 1;
           ctx.stroke();
