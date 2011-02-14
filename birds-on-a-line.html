@@ -8,6 +8,9 @@
 	<style type="text/css" media="screen">
 	  body { background-color: #e6e2df; }
 		#boids { display:block; margin: 0px auto; }
+    #credits {margin: 10px; font-size: 10pt; text-align: right; width: 600px; margin: 0 auto;}
+    #credits a, #credits a:visited {color: #000; text-decoration: none;}
+    #credits a:hover, #credits a:hover { text-decoration: underline;}
 	</style>
 	<script type="text/javascript" charset="utf-8">
 	  var FLOCK_SIZE = 100, NUM_POWER_LINES = 3, POWER_LINES_Z = 20.0, POWER_LINES_Y = 5.0, POWER_LINES_SPACING = 3.0,
@@ -247,6 +250,7 @@
 </head>
 <body onload="init()">
 <canvas id="boids" width="600" height="450"></canvas>
-
+<div id="credits">
+  <a href="http://blog.carbonfive.com/2011/02/13/a-3d-flocking-simulation-using-html5-canvas/">about this simulation &raquo;</a>
 </body>
 </html>
