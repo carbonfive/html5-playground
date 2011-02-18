@@ -6,12 +6,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Interest Map</title>
     <style type="text/css">
-        body {  background-color: #e0d3b0; padding: 0 2em; }
+        body {  background-color: #e0d3b0; padding: 0 2em; font-family:Helvetica,Arial; }
         #display { display:block; margin: 0 auto;
           background: -moz-radial-gradient(50% 30% 270deg, circle cover, #fff6e6 0%, #e0d3b0 40%);
           background-image: -webkit-gradient(radial, 50% 30%, 20, 50% 50%, 300, from(#fff6e6), to(#e0d3b0)); }
         #display.hover { cursor:pointer; }
         #caches { display: none; }
+        #credits {font-size: 10pt; text-align: center; width: 1000px; margin: 10px auto;}
+        #credits a, #credits a:visited {color: #ba9; text-decoration: none; }
+        #credits a:hover, #credits a:hover { text-decoration: underline; color: #653;}
     </style>
     <script type="text/javascript" charset="utf-8">
     /*
@@ -471,5 +474,8 @@
 <body onload="init()">
 <canvas id="display" width="1000" height="650"></canvas>
 <div id="caches"></div>
+<div id="credits">
+  <a href="http://blog.carbonfive.com/2011/02/17/visualizing-skillsets-in-html5-canvas-part-1/">about this project &raquo;</a>
+</div>
 </body>
 </html>
