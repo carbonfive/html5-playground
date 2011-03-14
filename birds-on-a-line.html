@@ -30,9 +30,12 @@
     function el(id) { return document.getElementById(id); }
     function each(a,f) { for (var i=0,l=a.length; i<l; i++) f(a[i],i); }
     function padd(p1,p2) { return {x:p1.x+p2.x, y:p1.y+p2.y, z:p1.z+p2.z} }
+    function paddto(p1,p2) { p1.x+=p2.x; p1.y+=p2.y; p1.z+=p2.z; }
     function psub(p1,p2) { return {x:p1.x-p2.x, y:p1.y-p2.y, z:p1.z-p2.z} }
+    function psubfrom(p1,p2) { p1.x-=p2.x; p1.y-=p2.y; p1.z-=p2.z; }
     function pmul(p,c) { return {x:p.x*c, y:p.y*c, z:p.z*c}; }
-    function metric(p1,p2) { var d=psub(p1,p2); return Math.sqrt(d.x*d.x+d.y*d.y+d.z*d.z); }
+    function pmulby(p,c) { p.x*=c; p.y*=c; p.z*=c; }
+    function metric(p1,p2) { var dx=p1.x-p2.x, dy=p1.y-p2.y, dz=p1.z-p2.z; return Math.sqrt(dx*dx+dy*dy+dz*dz); }
     function magnitude(p) { return metric(p,{x:0,y:0,z:0}); }
     function near(p1,p2,r) { return metric(p1,p2) <= r;  }
     function yz(p) { return {x:0, y:p.y, z:p.z}; }
@@ -123,7 +126,7 @@
           }
           
           if ( near(b.p,boid.p, COLLISION_DISTANCE) )
-            collisionAvoidance = psub(collisionAvoidance, psub(b.p,boid.p) );
+            psubfrom(collisionAvoidance, psub(b.p,boid.p) );
           
           flying++
         }
@@ -147,21 +150,21 @@
         
         // scale velocity modifiers
         if ( ! mesmarized ) {
-            centerOfFlock = pmul( centerOfFlock, CENTER_ATTRACTION_WEIGHT );
-            averageVelocity = pmul( averageVelocity, VELOCITY_ATTRACTION_WEIGHT / flying );
+            pmulby(centerOfFlock, CENTER_ATTRACTION_WEIGHT );
+            pmulby( averageVelocity, VELOCITY_ATTRACTION_WEIGHT / flying );
         }
-        collisionAvoidance = pmul(collisionAvoidance, COLLISION_AVOIDANCE_WEIGHT );
-        powerLineAttraction = pmul( powerLineAttraction, POWER_LINE_ATTRACTION_WEIGHT );
+        pmulby(collisionAvoidance, COLLISION_AVOIDANCE_WEIGHT );
+        pmulby( powerLineAttraction, POWER_LINE_ATTRACTION_WEIGHT );
         
         // use calculations to compute new velocity
-        boid.v = padd(boid.v,padd(padd(centerOfFlock,averageVelocity),padd(collisionAvoidance,powerLineAttraction)));
+        paddto(boid.v,padd(padd(centerOfFlock,averageVelocity),padd(collisionAvoidance,powerLineAttraction)));
         vBar = magnitude(boid.v);
-        if (( powerLineAdjustment < 1.0 ) && ( vBar > 0.2 )) boid.v = pmul( boid.v, powerLineAdjustment );
+        if (( powerLineAdjustment < 1.0 ) && ( vBar > 0.2 )) pmulby( boid.v, powerLineAdjustment );
         
         // do not let velocity exceed a maximum
-        if ( vBar > MAXIMUM_VELOCITY ) boid.v = pmul( boid.v, MAXIMUM_VELOCITY / vBar );
+        if ( vBar > MAXIMUM_VELOCITY ) pmulby( boid.v, MAXIMUM_VELOCITY / vBar );
         
-        boid.p = padd( boid.p, boid.v );        
+        paddto( boid.p, boid.v );        
       }
       
       function launch(direction) {
@@ -227,7 +230,7 @@
       
       flock.sort(function(a,b) { return b.p.z - a.p.z; });
       each(flock,function(b) { fog(ctx,b.p.z); circle( ctx, 225*b.p.x/b.p.z+300, 225*b.p.y/b.p.z+225, 62.5/b.p.z); })
-      each(lines,function(l) { var v=parseInt(225*l.y/l.z+225); line( ctx, 0, v, 600, v); })
+      each(lines,function(l) { var v=parseInt(225*l.y/l.z+225); line( ctx, 0, v, ctx.canvas.width, v); })
 		}
 		
     function circle( ctx, x, y, r ) {
@@ -243,9 +246,7 @@
         ctx.lineTo( x2, y2 );
         ctx.closePath();
         ctx.stroke();
-    }
-
-		
+    }		
 	</script>
 </head>
 <body onload="init()">

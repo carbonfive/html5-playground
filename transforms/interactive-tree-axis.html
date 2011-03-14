@@ -1,0 +1,201 @@
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Tree (Interactive)</title>
+  <style type="text/css">
+      body {  background-color: #fff; padding: 0 2em;  }
+      #display { display: block; margin: 0 auto; border: }
+      #credits {margin: 10px; font-size: 10pt; text-align: right; width: 600px; margin: 0 auto;}
+      #credits a, #credits a:visited {color: #aaa; text-decoration: none;}
+      #credits a:hover, #credits a:hover { text-decoration: underline; color: #333;}
+  </style>
+  <script type="text/javascript" charset="utf-8">
+  
+  (function() {
+    window.TransformArithmetic = {};
+    var ta = TransformArithmetic;
+    ta.project=  function(p,t) { return {x:t.a*p.x+t.c*p.y+t.e, y:t.b*p.x+t.d*p.y+t.f}; };
+    ta.multiply=function(t2,t1){ return {a:t1.a*t2.a+t1.b*t2.c, c:t1.c*t2.a+t1.d*t2.c, 
+                                         b:t1.a*t2.b+t1.b*t2.d, d:t1.c*t2.b+t1.d*t2.d, 
+                                         e:t1.e*t2.a+t1.f*t2.c+t2.e, f:t1.e*t2.b+t1.f*t2.d+t2.f}; };
+    ta.translate=function(x,y) { return {a:1,b:0,c:0,d:1,e:x,f:y}; };
+    ta.rotate= function(theta) { return {a:Math.cos(theta), b:Math.sin(theta),
+                                         c:-Math.sin(theta),d:Math.cos(theta),e:0,f:0}; }
+    ta.scale=    function(x,y) { return {a:x,b:0,c:0,d:y,e:0,f:0}; }
+    ta.ident=       function() { return {a:1,b:0,c:0,d:1,e:0,f:0}; }
+    ta.clone=      function(t) { return {a:t.a,b:t.b,c:t.c,d:t.d,e:t.e,f:t.f}; }
+    ta.inverse=    function(t) { var det=t.a*t.d-t.c*t.b; return {a:t.d/det, b:-t.b/det, c:-t.c/det,
+                                 d:t.a/det, e:(t.c*t.f-t.e*t.d)/det, f:(t.e*t.b-t.a*t.f)/det}; }
+    ta.interp=function(t1,t2,i) { var t={}, a=['a','b','c','d','e','f']; 
+                                  for (var j=0,k;k=a[j];j++) t[k]=t1[k]+(t2[k]-t1[k])*i; return t; }
+
+    window.Make2DContextQueryable = function(ctx) {
+      if ( ctx.contextToCanvas ) return;
+      
+      var transforms = [ta.ident()];
+      function current() { return transforms[transforms.length-1]; }
+      function set(t) { transforms[transforms.length-1] = t; }
+      function apply_to(t) { transforms[transforms.length-1] = ta.multiply(current(),t); }
+      function proxy_before(o,fn,f) { var oldf=o[fn]; o[fn]=function(){ 
+                                      f.apply(o,arguments); oldf.apply(o,arguments); };}
+
+      proxy_before(ctx,'save',function() { transforms.push(ta.clone(current())); });
+      proxy_before(ctx,'restore',function() { if (transforms.length>1) transforms.pop(); 
+                                              else transforms[0]=ident(); });
+      proxy_before(ctx,'scale',function(x,y) { apply_to(ta.scale(x,y)); });
+      proxy_before(ctx,'rotate',function(theta) { apply_to(ta.rotate(theta)); });
+      proxy_before(ctx,'translate',function(x,y) { apply_to(ta.translate(x,y)); });
+      proxy_before(ctx,'transform',function(a,b,c,d,e,f) { apply_to({a:a,b:b,c:c,d:d,e:e,f:f}); });
+      proxy_before(ctx,'setTransform',function(a,b,c,d,e,f) { set({a:a,b:b,c:c,d:d,e:e,f:f}); });
+
+      ctx.contextToCanvas = function(p) { return ta.project(p,current()); }
+      ctx.canvasToContext = function(p) { return ta.project(p,inverse(current())); }
+      ctx.currentTransform = function() { return current(); }      
+      return ctx;
+    }
+  })();
+  
+  var PARTS =  ['TRUNK','BOUGH','BRANCH','LIMB','BRANCHLET','TWIG','STEM','leaf'], 
+      WOOD_COLOR = 'rgba(46,30,10,.6)', LEAF_COLOR = 'rgba(66,166,10,.5)',
+      OVER_COLOR = 'rgba(255,255,255,1)', OVER_STROKE = 'rgba(0,150,220,.8)', 
+      OVER_LINE_WIDTH=2, 
+      MIN_SCALE = .4, MAX_SCALE=.8, MIN_LEAF_SCALE=6, MAX_LEAF_SCALE=6, 
+      ROTATION=Math.PI/5, DTHETA=Math.PI/16,  LEFT_OFFSET=20, TOP_OFFSET=10,
+      FONT='bold 30px Georgia,Times New Roman', 
+      tree = {type:0,scale:1,theta:0,over:false},
+      active_transform = {a:1,b:0,c:0,d:1,e:100,f:300}, last_transform = active_transform,
+      next_transform = active_transform, last_change=new Date();
+  
+  function rnd_between(s,e) { return s + (e-s)*Math.random(); }    
+  function gen_tree(index) {
+    if ( ! PARTS[index] ) return null;
+    var mins = PARTS[index]=='leaf' ? MIN_LEAF_SCALE : MIN_SCALE;
+    var maxs = PARTS[index]=='leaf' ? MAX_LEAF_SCALE : MAX_SCALE;
+    return [{type:index, scale:rnd_between(mins,maxs), 
+          theta:rnd_between(ROTATION-DTHETA,ROTATION+DTHETA), 
+          branches:gen_tree(index+1), over:false },
+      {type:index, scale:rnd_between(mins,maxs), 
+          theta:rnd_between(-ROTATION-DTHETA,-ROTATION+DTHETA), 
+          branches:gen_tree(index+1), over:false }];
+  }
+  
+  function transition_to(transform) {
+    var i = 0;
+    last_transform = active_transform;
+    next_transform = transform;
+    var it = setInterval(function() {
+      i += .1;
+      if ( i >= 1 ) {
+        clearInterval(it);
+        active_transform = next_transform;
+      } else {
+        active_transform = TransformArithmetic.interp(last_transform,next_transform,i);
+      }
+      draw();
+    },10);
+  }
+
+  function init() {
+    var canvas = document.getElementById('display');
+    var ctx = Make2DContextQueryable(canvas.getContext('2d')); 
+    ctx.font = FONT; ctx.strokeStyle = OVER_STROKE; ctx.lineWidth = OVER_LINE_WIDTH;
+    
+    tree.branches = gen_tree(1);
+    draw();
+    
+    canvas.onmousemove = function(evt) {
+      evt = evt || window.event;
+      var canvas = document.getElementById('display');
+      var canvasX = evt.clientX - canvas.offsetLeft + document.body.scrollLeft, 
+          canvasY = evt.clientY - canvas.offsetTop + document.body.scrollTop;
+      if ( over( tree, {x:canvasX, y:canvasY}) )
+        draw();
+    }
+  }
+  
+  function over( branch, canvasCoords ) {
+    if ( new Date().getTime() - last_change.getTime() < 500 ) return; 
+      
+    var tl = {a:1,b:0,c:0,d:1,e:100, f:300}, ta=TransformArithmetic;
+    function detranslate(t) { return ta.multiply(ta.inverse(tl),t); }
+    var t = ta.multiply( tl,ta.multiply( ta.inverse( detranslate(active_transform) ), 
+                                       detranslate(branch.transform) ) );
+
+    var ctxCoords = ta.project(canvasCoords,ta.inverse(t)), changed = false;
+    var is_over = (ctxCoords.x >= 0 
+      && ctxCoords.x <= branch.width
+      && ctxCoords.y <= TOP_OFFSET && ctxCoords.y >= -12 );
+    
+    if ( is_over != branch.over ) {
+      branch.over = is_over;
+      changed = true;
+      if ( is_over ) {
+        transition_to( branch.transform );
+        last_change = new Date();
+      }
+    }
+    if ( ! branch.branches ) return changed;
+    return changed || over(branch.branches[1],canvasCoords) || over(branch.branches[0],canvasCoords);
+  }
+  
+  function draw() {
+      var ctx = document.getElementById('display').getContext('2d'), ta=TransformArithmetic;
+      ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+      ctx.save();
+
+      ctx.translate( 100, 300 );
+
+      var at = ta.inverse(ta.multiply({a:1,b:0,c:0,d:1,e:-100, f:-300},active_transform));
+      ctx.transform( at.a, at.b, at.c, at.d, at.e, at.f );
+            
+      draw_branch( ctx, tree, false );
+      ctx.restore();
+  }
+
+  function draw_branch(ctx, branch, over) {
+		ctx.fillStyle = branch.branches ? WOOD_COLOR : LEAF_COLOR;
+    ctx.fillText(PARTS[branch.type], LEFT_OFFSET, TOP_OFFSET);
+
+    if ( ! branch.transform ) branch.transform = ctx.currentTransform();
+    if ( ! branch.width ) branch.width = ctx.measureText(PARTS[branch.type]).width + LEFT_OFFSET;
+    if ( branch.over ) draw_axis( ctx, branch.width + 10, 50 );
+    
+    if ( ! branch.branches ) return;
+    for ( var i=0,b; b=branch.branches[i]; i++ ) {        
+      ctx.save();
+      ctx.translate(branch.width, 0);
+      ctx.scale( b.scale, b.scale );
+      ctx.rotate( b.theta );
+      draw_branch(ctx, b, over || branch.over);
+      ctx.restore();
+    }
+  }
+  
+  function draw_axis( ctx, x, y ) {
+    ctx.save();
+    ctx.font = "16px Helvetica,Arial";  ctx.fillStyle = "#6af"; 
+    ctx.strokeStyle = "#6af"; ctx.lineWidth = .5;
+    ctx.translate( 15, 15 );
+    ctx.fillText('x', x+10, 4); ctx.fillText('y', -3, -y-14);
+    axis_arrow( ctx, x ); ctx.rotate(-Math.PI/2 ); axis_arrow( ctx, y );
+    ctx.restore();
+  }
+  
+  function axis_arrow( ctx, l ) {
+    ctx.beginPath();
+    ctx.moveTo(0,0); ctx.lineTo(l,0); ctx.stroke();
+    ctx.beginPath(); 
+    ctx.moveTo(l+8,0); ctx.lineTo(l,3); ctx.lineTo(l,-3); ctx.closePath();
+    ctx.fill();
+  }
+
+  
+  </script>
+</head>
+<body onload="init()">
+<canvas id="display" width="600" height="600"></canvas>
+<div id="credits">
+  <a href="http://blog.carbonfive.com/2011/03/14/taming-2d-transforms/">about this drawing &raquo;</a>
+</div>
+</body>
+</html>

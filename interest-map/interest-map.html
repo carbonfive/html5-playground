@@ -120,6 +120,8 @@
       proxy_before(ctx,'transform',function(a,b,c,d,e,f) { apply_to({a:a,b:b,c:c,d:d,e:e,f:f}); });
       proxy_before(ctx,'setTransform',function(a,b,c,d,e,f) { set({a:a,b:b,c:c,d:d,e:e,f:f}); });
 
+      ctx.vector_transform = function(x1,y1,x2,y2) { var dx=x2-x1, dy=y2-y1, r=Math.sqrt(dx*dx+dy*dy)||1, sn=dy/r, cs=dx/r; 
+                                                     ctx.transform( cs, sn, -sn, cs, x1, y1); }
       ctx.project = function(p,t) { return project(p,t?t:current()); }
       ctx.project_inverse = function(p,t) { return project(p,inverse(t?t:current())); }
       ctx.get_transform = function() { return current(); }      
@@ -243,8 +245,8 @@
     
     
     function nametag( ctx, cardx, cardy, person, r, interest ) {
-      ctx.save(); ctx.translate( cardx, cardy ); ctx.rotate( r + .4*(Math.random()-.5) ); 
-      ctx.translate( -TAG_RADIUS -  + 4*Math.random(), 0 ); ctx.rotate( -r );
+      ctx.save(); ctx.translate( cardx, cardy ); ctx.rotate( r ); 
+      ctx.translate( -TAG_RADIUS -  + 4*Math.random(), 0 ); ctx.rotate( -r + .4*(Math.random()-.5) );
       draw_nametag( ctx, person, interest );
       ctx.restore();
     }
@@ -253,12 +255,12 @@
       ctx.save(); ctx.beginPath();
       ctx.font = NAME_FONT.font;
       var width = ctx.measureText(person.name).width + 10;
-      ctx.shadowBlur = 2; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2, ctx.shadowColor='rgba(0, 0, 0, 0.2)';
+      ctx.shadowBlur = 2; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2; ctx.shadowColor='rgba(0, 0, 0, 0.2)';
       ctx.fillStyle = interest ? lighten_color(person.color) : person.color; 
       ctx.strokeStyle = interest ? '#ff0' : '#000', ctx.lineWidth=.1;
       ctx.rect( -width/2, -10, width, 20 );
       ctx.fill(); ctx.stroke();
-      center_text( ctx, person.name, 00, 0, interest ? INTEREST_NAME_FONT : NAME_FONT );
+      center_text( ctx, person.name, 0, 0, interest ? INTEREST_NAME_FONT : NAME_FONT );
       ctx.restore();
     }
     
@@ -467,8 +469,6 @@
       lrgb = {r:parseInt(rgb.r+(255-rgb.r)*factor), g:parseInt(rgb.g+(255-rgb.g)*factor), b:parseInt(rgb.b+(255-rgb.b)*factor)};
       return '#' + ((lrgb.r<<16) + (lrgb.g<<8) + lrgb.b).toString(16);
     }
-    
-    
     </script>
 </head>
 <body onload="init()">
