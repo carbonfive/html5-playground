@@ -98,7 +98,7 @@
   
   function over( branch, canvasCoords ) {
     var ta = TransformArithmetic, changed = false;
-    var ctxCoords = ta.project(canvasCoords,ta.inverse(branch.transform)),         
+    var ctxCoords = ta.project(canvasCoords,ta.inverse(branch.transform));
     var is_over = (ctxCoords.x >= 0 
       && ctxCoords.x <= branch.width
       && ctxCoords.y <= TOP_OFFSET && ctxCoords.y >= -12 );
