@@ -9,6 +9,7 @@
 		}
 		body {
 			background: -webkit-linear-gradient(45deg,  #cde 0%,#345 100%); 
+			background: -moz-linear-gradient(45deg,  #cde 0%,#345 100%); 
 		}
 
 		#message { height: 40px;}
@@ -22,6 +23,7 @@
 			width: 360px;
 			margin-right: 10px;
 			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
 			border: 1px solid #abc;
 			height: 200px;
 			position: relative;
@@ -33,6 +35,7 @@
 
 		.problem {
 			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
 			font-family: Georgia, serif;
 			font-size: 80px;
 			line-height: 185px;
@@ -47,9 +50,12 @@
 			z-index: 2;
 			top: 0;
 			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
 			border: 1px solid #666;
 			position: absolute;
 			background: -webkit-linear-gradient(top,  rgba(255,255,255,.9) 0%,rgba(255,255,255,0.32) 51%,
+																								rgba(255,255,255,0) 56%,rgba(255,255,255,0) 100%);
+			background: -moz-linear-gradient(top,  rgba(255,255,255,.9) 0%,rgba(255,255,255,0.32) 51%,
 																								rgba(255,255,255,0) 56%,rgba(255,255,255,0) 100%);
 
 		}
@@ -70,10 +76,12 @@
 			width: 200px;
 			height: 200px;
 			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
 			overflow: hidden;
 			border: 1px solid #234;
 			float: left;
 			background: -webkit-linear-gradient(#123 0%,#468 100%); 
+			background: -moz-linear-gradient(#123 0%,#468 100%); 
 			margin-bottom: 10px;
 		}
 
@@ -95,10 +103,12 @@
 			height: 110px;
 			float: left;
 			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
 			position: relative;
 			overflow: hidden;
 			border: 1px solid rgba(34,52,68,1);
 			background: -webkit-linear-gradient(#456 0%,#468 100%); 
+			background: -moz-linear-gradient(#456 0%,#468 100%); 
 		}
 
 		#mastery-screen, #mastery-chart-screen, #history-screen { 
@@ -126,6 +136,7 @@
 			width: 5px;
 			display: inline-block;
 			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
 			margin: 1px;
 		}
 
@@ -159,6 +170,7 @@
 			width: 4px;
 			display: inline-block;
 			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
 			margin: 0 1px 0 2px;
 		}
 
@@ -185,6 +197,7 @@
 			margin: 0 10px;
 			display: inline-block;
 			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
 		}
 
 		#timer-back span {
@@ -252,12 +265,14 @@
 
 		 
 		/*  TODO:
-			Additional help
+			Additional help (function to toggle cards)
+			indication with instructions that window is blured.
+			set difficulty (time) with: #level[n]:[name]
 		  Correct and incorrect sounds
 		*/
 
 		function init() {
-			document.body.onkeydown = handleKey;
+			window.onkeydown = handleKey;
 			setInterval( function() {
 				if ( lastHash === undefined ) return lastHash = document.location.hash;
 				if ( (paused || testing) && document.location.hash != lastHash ) {
@@ -324,6 +339,7 @@
 			// answer background
 			answer = '';
 			renderAnswer();
+			window.focus();
 		}
 
 		function handleKey( event ) {			
@@ -394,7 +410,7 @@
 		function factors() {
 			// add each problem to chooser weighted by mastery
 			var c = Chooser();
-			for (var i=0; i<=MAX_FACTOR; i++) for (var j=0; j<=MAX_FACTOR; j++) c.add([i,j],MASTERY_WEIGHT-problemMastery(i,j));
+			for (var i=0; i<=MAX_FACTOR; i++) for (var j=0; j<=MAX_FACTOR; j++) c.add([i,j],Math.pow(MASTERY_WEIGHT-problemMastery(i,j),4));
 			return c.choose();
 		}
 
@@ -502,8 +518,8 @@
       ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 4;
 			renderDigits(ctx, String((100*mastery())|0), spacing);
 
-			ctx.font = 'normal 50px Verdana,sans-serif';
-			ctx.fillText('%',240,65);
+			ctx.save(); ctx.font = 'normal 50px Verdana,sans-serif'; ctx.scale(1,-1);
+			ctx.fillText('%',238,-29);ctx.restore();
 
       ctx.restore();
 
