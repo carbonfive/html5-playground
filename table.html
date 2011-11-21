@@ -220,10 +220,22 @@
 			position: absolute;
 			width: 100%;
 			z-index: 1;
+			top: -200px;
+		}
+
+		#help-0 {
+			top: 0px;
 		}
 
 		.help p {
-			margin: 0 0 6px;
+			margin: 0 0 4px;
+		}
+
+		.help p.text {
+			text-align: justify;
+			color: #000;
+			padding: 0 20px;
+			margin: 0 0 8px;
 		}
 
 		.help h1 {
@@ -238,8 +250,19 @@
 			font-weight: bold;
 			font-style: italic;
 			font-size: 20px;
-			margin-bottom: 16px;
+			margin-bottom: 14px;
 			color: #433;
+		}
+
+		#focus-warning {
+			clear: both;
+			text-align: center;
+			color: rgba(255,255,255,.5);
+			font-family: Helvetica,sans-serif;
+			margin-top: 40px;
+			display: inline-block;
+			width: 100%;
+			display: none;
 		}
 
 		strong { font-weight: bold; }
@@ -247,6 +270,7 @@
 	<script type="text/javascript" charset="utf-8">
 		function el(id) { return document.getElementById(id); }
 		function range(n,f) { var a=[]; for (var i=0; i<n; i++) a.push(f(i)); return a; }
+		function remove(id) { var e = el(id); if (e) e.parentNode.removeChild(e); }
 
 		var MAX_FACTOR = 12;
 		var SECONDS_PER_QUESTION = 5;
@@ -255,7 +279,8 @@
 
 		var currentProblem;
 		var answer = '';
-		var problemIndex=0, problemId, previousProblemId;
+		var problemIndex=0;
+		var helpIndex = 0;
 		var timerInterval;
 		var testing = false;
 		var paused = true;
@@ -265,9 +290,7 @@
 
 		 
 		/*  TODO:
-			Additional help (function to toggle cards)
-			indication with instructions that window is blured.
-			set difficulty (time) with: #level[n]:[name]
+			set difficulty (time) with: #level[n]:[name] ?
 		  Correct and incorrect sounds
 		*/
 
@@ -281,6 +304,8 @@
 					lastHash = document.location.hash;
 				}
 			}, 50 );
+			window.onblur = function() { el('focus-warning').style.display='inline-block'; }
+			window.onfocus = function() { el('focus-warning').style.display='none'; }
 
 			// create timer dots
 			for ( var i=0; i<SECONDS_PER_QUESTION; i++) {
@@ -360,51 +385,59 @@
 			} else  if ( code == 32 ) {
 				togglePause();
 				return false;
+			} else if ( code == 40 ) {
+				pageHelp();
+				return false;
 			}
 			return true;	
 		}
 
 		function togglePause() {			
 			if ( paused ) {
-				previousProblemId = null;
 				nextProblem();
 				paused = false;
 			} else {
 				answer = '';
 				renderAnswer();
 				stopTimer();
-				if ( previousProblemId ) el('problem-container').removeChild( el(previousProblemId) );
-				previousProblemId = problemIndex-1;
-				var duration = .25;
-				var animation = ComplexAnimation( 60 );
-				animation.add( 0, duration, 'problem-'+previousProblemId, 'top', 0, 200, BOUNCE_EASING );
-				animation.add( 0, duration, 'help-1', 'top', -200, 0, BOUNCE_EASING );
-				animation.start();
+				var problemId = 'problem-'+problemIndex;
+				flipCards( problemId, 'help-0', function() { remove(problemId); })
+				helpIndex = 0;
 				paused = true
 			}
 		}
 
+		function pageHelp() {
+			var nextHelp = (helpIndex+1)%3;
+			flipCards( 'help-'+helpIndex, 'help-'+nextHelp );
+			helpIndex = nextHelp;
+		}
+
 		function nextProblem( ) {
+			var previousProblemId = 'problem-'+problemIndex;
 			currentProblem = factors();
 
-			if ( previousProblemId ) el('problem-container').removeChild( el(previousProblemId) );
-			previousProblemId = problemId;
 			var newProblem = document.createElement('div');
 			newProblem.setAttribute('class','problem');
-			newProblem.id = problemId = 'problem-'+(problemIndex++);
+			newProblem.id = 'problem-'+(++problemIndex);
 			newProblem.innerHTML = currentProblem[0] + ' &#x00D7; ' + currentProblem[1] + ' =';
 			el('problem-container').appendChild( newProblem );
 
-			var duration = .25;
-			var animation = ComplexAnimation( 60 );
-			animation.add( 0, duration, newProblem.id, 'top', -newProblem.offsetHeight, 0, BOUNCE_EASING );
-			if ( paused ) animation.add( 0, duration, 'help-1', 'top', 0, newProblem.offsetHeight, BOUNCE_EASING );
-			else if ( previousProblemId ) animation.add( 0, duration, previousProblemId, 'top', 0, newProblem.offsetHeight, BOUNCE_EASING );
-			animation.start();
+			if ( paused )
+				flipCards( 'help-'+helpIndex, newProblem.id );
+			else 
+				flipCards( previousProblemId, newProblem.id, function() { remove(previousProblemId); } );
 
 			answer = '';
 			renderAnswer();
 			startTimer();
+		}
+
+		function flipCards( oldId, newId, completeHandler ) {
+			var animation = ComplexAnimation( 60 ), duration = .25;
+			animation.add( 0, duration, newId, 'top', -el('problem-container').offsetHeight, 0, BOUNCE_EASING );
+			animation.add( 0, duration, oldId, 'top', 0, el('problem-container').offsetHeight, BOUNCE_EASING );
+			animation.start( completeHandler );
 		}
 
 		function factors() {
@@ -704,11 +737,26 @@
 	<div id="layout">
 		<div id="problem-container">
 			<div id="problem-screen" class="screen"></div>
-			<div id="help-1" class="help">
+			<div id="help-0" class="help">
 				<h1>Multiplication Table</h1>
 				<h2><span id="profile"></span></h2>
 				<p>Press <strong>space</strong> to resume the test.</p>
 				<p>Press <strong>space</strong> again to pause the test.</p>
+				<p>Press <strong>down</strong> for more help.</p>
+			</div>
+			<div id="help-1" class="help">
+			  <p class="text">When testing, the problem will appear here and the answer will appear to the right. The answer you type will be
+			     accepted as soon as it is correct. The grid in the bottom center contains a dot for each problem, which will illuminate
+			     as the problem is mastered. The percentage on the bottom right is the total mastery, and the graph on the bottom left
+			     shows mastery over time.</p>
+				<p>Press <strong>down</strong> for more help.</p>
+			</div>
+			<div id="help-2" class="help">
+			  <p class="text">If you leave this page, your stats will be saved. They will only be available to this browser on this computer,
+			   	 however. You may save stats for multiple people by adding a hash tag to the URL above. For example, .../table.html#ada will
+			   	 store stats for Ada. You may then change it to .../table.html#alex to switch to a different student. Typing #ada again
+			   	 will return to Ada's stats.</p>
+				<p>Press <strong>down</strong> to return.</p>
 			</div>
 		</div>		
 		<div id="answer-container">
@@ -734,5 +782,6 @@
 			</div>
 		</div>
 	</div>
+	<div id="focus-warning">This window is not selected. Click here to enable keyboard.</div>
 </body>
 </html>
