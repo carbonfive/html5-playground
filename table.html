@@ -265,6 +265,19 @@
 			display: none;
 		}
 
+		#clicktrap {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: none;
+			border: none;
+			margin: 0;
+			padding: 0;
+			color: rgba(0,0,0,0);
+		}
+
 		strong { font-weight: bold; }
 	</style>
 	<script type="text/javascript" charset="utf-8">
@@ -295,7 +308,7 @@
 		*/
 
 		function init() {
-			window.onkeydown = handleKey;
+			el('clicktrap').onkeydown = handleKey;
 			setInterval( function() {
 				if ( lastHash === undefined ) return lastHash = document.location.hash;
 				if ( (paused || testing) && document.location.hash != lastHash ) {
@@ -304,8 +317,8 @@
 					lastHash = document.location.hash;
 				}
 			}, 50 );
-			window.onblur = function() { el('focus-warning').style.display='inline-block'; }
-			window.onfocus = function() { el('focus-warning').style.display='none'; }
+			el('clicktrap').onblur = function() { el('focus-warning').style.display='inline-block'; }
+			el('clicktrap').onfocus = function() { el('focus-warning').style.display='none'; }
 
 			// create timer dots
 			for ( var i=0; i<SECONDS_PER_QUESTION; i++) {
@@ -367,7 +380,7 @@
 			window.focus();
 		}
 
-		function handleKey( event ) {			
+		function handleKey( event ) {	
 			event = event || window.event;
 			var code = event.keyCode || event.which;
 
@@ -783,5 +796,6 @@
 		</div>
 	</div>
 	<div id="focus-warning">This window is not selected. Click here to enable keyboard.</div>
+	<input type="text" id="clicktrap"/>
 </body>
 </html>
