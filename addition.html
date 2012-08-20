@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>addition</title>
+	<style type="text/css" media="screen">
+		html {
+			height: 100%;
+		}
+		body {
+			background: -webkit-linear-gradient(45deg,  #cde 0%,#345 100%); 
+			background: -moz-linear-gradient(45deg,  #cde 0%,#345 100%); 
+		}
+
+		#message { height: 40px;}
+
+		#layout {
+			width: 574px;
+			margin: 60px auto;
+		}
+
+		#problem-container {
+			width: 360px;
+			margin-right: 10px;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			border: 1px solid #abc;
+			height: 200px;
+			position: relative;
+			background-color: #d0cfc5;
+			box-shadow: inset 0px 3px 7px #000;
+			overflow: hidden;
+			float: left;
+		}
+
+		.problem {
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			font-family: Georgia, serif;
+			font-size: 80px;
+			line-height: 185px;
+			width: 360px;
+			height: 200px;
+			text-align: center;
+			top: -200px;
+			position: absolute;
+		}
+
+		.screen {
+			z-index: 2;
+			top: 0;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			border: 1px solid #666;
+			position: absolute;
+			background: -webkit-linear-gradient(top,  rgba(255,255,255,.9) 0%,rgba(255,255,255,0.32) 51%,
+																								rgba(255,255,255,0) 56%,rgba(255,255,255,0) 100%);
+			background: -moz-linear-gradient(top,  rgba(255,255,255,.9) 0%,rgba(255,255,255,0.32) 51%,
+																								rgba(255,255,255,0) 56%,rgba(255,255,255,0) 100%);
+
+		}
+
+		#problem-screen {
+			width: 358px;
+			height: 198px;
+		}
+
+		#answer-screen { 
+			opacity: .4; 
+			height: 198px;
+			width: 198px;
+		}
+
+		#answer-container {
+			position: relative;
+			width: 200px;
+			height: 200px;
+			-webkit-border-radius: 10px;
+			-moz-border-radius: 10px;
+			overflow: hidden;
+			border: 1px solid #234;
+			float: left;
+			background: -webkit-linear-gradient(#123 0%,#468 100%); 
+			background: -moz-linear-gradient(#123 0%,#468 100%); 
+			margin-bottom: 10px;
+		}
+
+		#answer {
+			height: 150px;
+			width: 200px;
+		}
+
+		#stats-container {
+			position: relative;
+			width: 572px;
+			height: 110px;
+		}
+
+		#mastery-container { width: 200px; }
+		#mastery-chart-container { width: 120px; margin-right: 10px; }
+		#history-container { width: 228px; margin-right: 10px; }
+		#mastery-container, #mastery-chart-container, #history-container {
+			height: 110px;
+			float: left;
+			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
+			position: relative;
+			overflow: hidden;
+			border: 1px solid rgba(34,52,68,1);
+			background: -webkit-linear-gradient(#456 0%,#468 100%); 
+			background: -moz-linear-gradient(#456 0%,#468 100%); 
+		}
+
+		#mastery-screen, #mastery-chart-screen, #history-screen { 
+			opacity: .1; 
+			height: 108px;
+			width: 300px;
+		}
+		#mastery-chart-container { width: 118px; }
+
+		#chart, #chart-back {
+			text-align: center;
+			position: absolute;
+			width: 118px;
+			height: 110px;
+			top: 10px;
+		}
+
+		#chart div, #chart-back div {
+			margin: 0;
+			height: 14px;
+		}
+
+		#chart span, #chart-back span {
+			height: 10px;
+			width: 10px;
+			display: inline-block;
+			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
+			margin: 2px;
+		}
+
+		#chart {
+			opacity: .7;
+		}
+
+		#chart span {
+      background-color: #64ffff;
+			box-shadow: 0px 0px 3px #64ffff;
+			opacity: 0;
+		}
+
+		#chart-back span {
+      background-color: #000;
+			opacity: .15;
+		}
+
+
+		#history, #history-back {
+			text-align: center;
+			position: absolute;
+			width: 228px;
+			height: 110px;
+			top: 10px;
+			opacity: .7;
+		}
+
+		#history span, #history-back span {
+			height: 92px;
+			width: 4px;
+			display: inline-block;
+			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
+			margin: 0 1px 0 2px;
+		}
+
+		#history span {
+      background-color: #64ffff;
+			box-shadow: 0px 0px 3px #64ffff;
+		}
+
+		#history-back span {
+      background-color: #000;
+			opacity: .15;
+		}
+
+		#timer, #timer-back {
+			text-align: center;
+			position: absolute;
+			width: 200px;
+			top: 154px;
+		}
+
+		#timer span, #timer-back span {
+			height: 8px;
+			width: 8px;
+			margin: 0 10px;
+			display: inline-block;
+			-webkit-border-radius: 5px;
+			-moz-border-radius: 5px;
+		}
+
+		#timer-back span {
+      background-color: #000;
+			opacity: .15;
+		}
+
+		#timer span {
+      background-color: #64ffff;
+			box-shadow: 0px 0px 7px #64ffff;
+			opacity: 0;
+		}
+
+		.help {
+			font: Georgia,serif;
+			font-size: 14px;			
+			text-align: center;
+			padding-top: 25px;
+			color: #443;
+			position: absolute;
+			width: 100%;
+			z-index: 1;
+			top: -200px;
+		}
+
+		#help-0 {
+			top: 0px;
+		}
+
+		.help p {
+			margin: 0 0 4px;
+		}
+
+		.help p.text {
+			text-align: justify;
+			color: #000;
+			padding: 0 20px;
+			margin: 0 0 8px;
+		}
+
+		.help h1 {
+			font-weight: normal;
+			font-size: 28px;
+			margin-bottom: 16px;
+			color: #000;
+		}
+
+		.help h2 {
+			height: 22px;
+			font-weight: bold;
+			font-style: italic;
+			font-size: 20px;
+			margin-bottom: 14px;
+			color: #433;
+		}
+
+		#focus-warning {
+			clear: both;
+			text-align: center;
+			color: rgba(255,255,255,.5);
+			font-family: Helvetica,sans-serif;
+			margin-top: 40px;
+			display: inline-block;
+			width: 100%;
+			display: none;
+		}
+
+		#clicktrap {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: none;
+			border: none;
+			margin: 0;
+			padding: 0;
+			color: rgba(0,0,0,0);
+		}
+
+		strong { font-weight: bold; }
+	</style>
+	<script type="text/javascript" charset="utf-8">
+		function el(id) { return document.getElementById(id); }
+		function range(n,f) { var a=[]; for (var i=0; i<n; i++) a.push(f(i)); return a; }
+		function remove(id) { var e = el(id); if (e) e.parentNode.removeChild(e); }
+
+		var MAX_FACTOR = 5;
+		var SECONDS_PER_QUESTION = 6;
+		var QUESTIONS_PER_GRAPH_TICK = 10;
+		var MASTERY_WEIGHT = 1.2;
+
+		var currentProblem;
+		var answer = '';
+		var problemIndex=0;
+		var helpIndex = 0;
+		var timerInterval;
+		var testing = false;
+		var paused = true;
+		var currentStats;
+		var profile;
+		var lastHash;
+
+		 
+		/*  TODO:
+			set difficulty (time) with: #level[n]:[name] ?
+		  Correct and incorrect sounds
+		*/
+
+		function init() {
+			el('clicktrap').onkeydown = handleKey;
+			setInterval( function() {
+				if ( lastHash === undefined ) return lastHash = document.location.hash;
+				if ( (paused || testing) && document.location.hash != lastHash ) {
+					reset();
+					if ( ! paused ) togglePause();
+					lastHash = document.location.hash;
+				}
+			}, 50 );
+			el('clicktrap').onblur = function() { el('focus-warning').style.display='inline-block'; }
+			el('clicktrap').onfocus = function() { el('focus-warning').style.display='none'; }
+
+			// create timer dots
+			for ( var i=0; i<SECONDS_PER_QUESTION; i++) {
+				var dot = document.createElement('SPAN'); dot.id='timer-'+i; el('timer').appendChild(dot);
+				dot = document.createElement('SPAN'); el('timer-back').appendChild(dot);
+			}
+
+			// create chart dots
+			for ( var i=0; i<=MAX_FACTOR; i++ ) {
+				var row = document.createElement('DIV'), rowback = document.createElement('DIV');
+				for ( var j=0; j<=MAX_FACTOR; j++ ) {
+					var point = document.createElement('SPAN'); point.id='chart-'+i+'-'+j; row.appendChild(point);
+					point = document.createElement('SPAN'); rowback.appendChild(point);
+				} 
+				el('chart').appendChild( row );
+				el('chart-back').appendChild( rowback );
+			}
+
+			// create history bars
+			for ( var i=0; i < 30; i++ ) {
+				var bar = document.createElement('SPAN'); bar.id='history-'+i; el('history').appendChild(bar);
+				bar = document.createElement('SPAN'); el('history-back').appendChild(bar);
+			}
+
+			reset();
+		}
+
+		function reset() {
+			// load or create stats
+			profile = (document.location.hash || ( window.localStorage && localStorage.lastProfile ) || 'default').replace('#','');
+			if ( profile.match(/^clear:/) ) {
+				profile = profile.match(/^clear:(.*)$/)[1]; 
+				if ( window.localStorage ) delete localStorage['stats-'+profile];				
+			}
+			if ( window.localStorage && localStorage['stats-'+profile] ) {
+			 	currentStats = JSON.parse(localStorage['stats-'+profile]);
+			} else {
+				currentStats = { answers:range(30,function(){return 0;}), mastery:range(30,function(){return 0;}), count:0 };
+				if ( window.localStorage ) localStorage['stats-'+profile] = JSON.stringify(currentStats);
+			}
+			if ( window.localStorage ) localStorage.lastProfile = profile;
+			if ( profile != 'default' && document.location.hash != '#'+profile )
+				document.location.hash = profile;
+
+			// draw all stats
+			renderMastery();
+			for ( var i=0; i<=MAX_FACTOR; i++ ) {
+				for ( var j=0; j<=MAX_FACTOR; j++ ) {
+				  el('chart-'+i+'-'+j).style.opacity = problemMastery(i,j);
+				}
+			}
+
+			// help text
+			el('profile').innerHTML = profile == 'default' ? '' : '&#x2015; &nbsp;'+profile.charAt(0).toUpperCase() + profile.slice(1)+'&nbsp; &#x2015;';
+
+			// answer background
+			answer = '';
+			renderAnswer();
+			window.focus();
+		}
+
+		function handleKey( event ) {	
+			event = event || window.event;
+			var code = event.keyCode || event.which;
+
+			if ( ! testing && ! paused ) return ( code != 8 );
+
+			if ( code >= 48 && code < 58 && answer.length < 3 ) {
+				answer = (answer || '') + (code - 48);
+				renderAnswer();
+				testAnswer();
+				return false;
+			} else if ( code == 8 && answer.length ) {
+				answer = answer.substring(0,answer.length-1);
+				renderAnswer();
+				return false;
+			} else  if ( code == 32 ) {
+				togglePause();
+				return false;
+			} else if ( code == 40 ) {
+				pageHelp();
+				return false;
+			}
+			return true;	
+		}
+
+		function togglePause() {			
+			if ( paused ) {
+				nextProblem();
+				paused = false;
+			} else {
+				answer = '';
+				renderAnswer();
+				stopTimer();
+				var problemId = 'problem-'+problemIndex;
+				flipCards( problemId, 'help-0', function() { remove(problemId); })
+				helpIndex = 0;
+				paused = true
+			}
+		}
+
+		function pageHelp() {
+			var nextHelp = (helpIndex+1)%3;
+			flipCards( 'help-'+helpIndex, 'help-'+nextHelp );
+			helpIndex = nextHelp;
+		}
+
+		function nextProblem( ) {
+			var previousProblemId = 'problem-'+problemIndex;
+			currentProblem = factors();
+
+			var newProblem = document.createElement('div');
+			newProblem.setAttribute('class','problem');
+			newProblem.id = 'problem-'+(++problemIndex);
+			newProblem.innerHTML = currentProblem[0] + ' + ' + currentProblem[1] + ' =';
+			el('problem-container').appendChild( newProblem );
+
+			if ( paused )
+				flipCards( 'help-'+helpIndex, newProblem.id );
+			else 
+				flipCards( previousProblemId, newProblem.id, function() { remove(previousProblemId); } );
+
+			answer = '';
+			renderAnswer();
+			startTimer();
+		}
+
+		function flipCards( oldId, newId, completeHandler ) {
+			var animation = ComplexAnimation( 60 ), duration = .25;
+			animation.add( 0, duration, newId, 'top', -el('problem-container').offsetHeight, 0, BOUNCE_EASING );
+			animation.add( 0, duration, oldId, 'top', 0, el('problem-container').offsetHeight, BOUNCE_EASING );
+			animation.start( completeHandler );
+		}
+
+		function factors() {
+			// add each problem to chooser weighted by mastery
+			var c = Chooser();
+			for (var i=0; i<=MAX_FACTOR; i++) for (var j=0; j<=MAX_FACTOR; j++) c.add([i,j],Math.pow(MASTERY_WEIGHT-problemMastery(i,j),4));
+			return c.choose();
+		}
+
+		function testAnswer( timesUp ) {
+			if ( parseInt(answer) == currentProblem[0] + currentProblem[1] ) {
+				stopTimer();
+				mark( currentProblem, true );
+				renderAnswer( true );
+				renderMastery(currentProblem);
+				testing = false;
+				setTimeout( nextProblem, 1000 );
+			} else if ( timesUp ) {
+				answer = ''+(currentProblem[0] + currentProblem[1]);
+				mark( currentProblem, false );
+				renderMastery(currentProblem);
+				renderAnswer( false );
+				testing = false;
+				setTimeout( nextProblem, 3000 );
+			}
+		}
+
+		function mark( problem, correct ) {
+			var i=problem[0], j=problem[1], index=i*(MAX_FACTOR+1)+j, blockindex=(index/6)|0, subindex=(index%6)*5, a = currentStats.answers;
+			var record = (a[blockindex] >> subindex) & 0x1f;
+			record = ((record << 1) | ( correct ? 1 : 0 )) & 0x1f;
+			a[blockindex] = (a[blockindex] & ~(0x1f<<subindex)) | (record << subindex);
+
+			currentStats.count++;
+			if ( currentStats.count % QUESTIONS_PER_GRAPH_TICK == 0 )
+				currentStats.mastery = currentStats.mastery.slice(1).concat( [mastery()] );
+
+			if ( window.localStorage ) localStorage['stats-'+profile] = JSON.stringify(currentStats);
+		}
+
+		function mastery() {
+			var count = 0;
+			for (var a=currentStats.answers,i=0,l=a.length,n;n=a[i],i<l;i++) while(n) { count+=(n&1); n>>=1; }
+			return count / ((MAX_FACTOR+1)*(MAX_FACTOR+1)*5);
+		}
+
+		function problemMastery( i, j ) {
+			var index = i*(MAX_FACTOR+1) + j, blockindex = (index/6)|0, subindex=(index%6)*5, a = currentStats.answers;
+			var record = (a[blockindex] >> subindex) & 0x1f, count=0;
+			while(record) { count+=(record&1); record>>=1; };
+			return count / 5;
+		}
+
+		function startTimer() {
+			testing = true;
+			timerStart = +new Date;
+			timerInterval = setInterval( function() {
+				var remaining = SECONDS_PER_QUESTION - ((+new Date) - timerStart) / 1000;
+				if ( remaining <= 0 ) {
+					testAnswer(true);
+					return stopTimer();
+				}
+				for ( var i=0, e=el('timer-'+i); e=el('timer-'+i); i++ ) e.style.opacity= Math.min(1,Math.max(0,remaining - i));
+			}, 50 );
+		}
+
+		function stopTimer() {
+			for ( var i=0, e=el('timer-'+i); e=el('timer-'+i); i++ ) e.style.opacity=0;
+			clearInterval( timerInterval );
+			timerInterval = null;			
+		}
+
+		function renderAnswer( correct ) {
+			var ctx = el('answer').getContext('2d'), spacing = 76, scale=.7;
+			ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.save();
+
+      ctx.translate(8,130); ctx.scale(scale,-scale);
+      ctx.translate((200/scale-spacing*3)/2,0);	// center
+
+      ctx.fillStyle = 'rgba(0,0,0,.1)';
+      renderDigits(ctx, '888', spacing);
+
+      ctx.fillStyle= ctx.shadowColor = 'rgba(100,255,255,1)';
+      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 4;
+			renderDigits(ctx, answer, spacing);
+
+      ctx.restore();
+
+      ctx.save(); ctx.translate( 155, 33 ); ctx.scale( .10, -.10 ); 
+      cross(ctx, correct === false );
+      ctx.restore();
+
+      ctx.save(); ctx.translate( 55, 27 ); ctx.scale( .092, -.092 ); 
+      check(ctx, correct === true );
+      ctx.restore();
+		}
+
+		function renderMastery( problem ) {
+			var ctx = el('mastery').getContext('2d'), spacing = 76, scale=.5;
+			ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+      ctx.save();
+
+      ctx.translate(-16,80); ctx.scale(scale,-scale);
+      ctx.translate((200/scale-spacing*3)/2,0);	// center
+
+      ctx.fillStyle = 'rgba(0,0,0,.08)';
+      renderDigits(ctx, '188', spacing);
+
+      ctx.fillStyle= ctx.shadowColor = 'rgba(100,255,255,1)';
+      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 4;
+			renderDigits(ctx, String((100*mastery())|0), spacing);
+
+			ctx.save(); ctx.font = 'normal 50px Verdana,sans-serif'; ctx.scale(1,-1);
+			ctx.fillText('%',238,-29);ctx.restore();
+
+      ctx.restore();
+
+      if ( problem )
+      	el('chart-'+problem[0]+'-'+problem[1]).style.opacity = problemMastery(problem[0],problem[1]);
+
+      for ( var i=0,l=currentStats.mastery.length; i<l; i++ ) {
+      	var barHeight = (92 * currentStats.mastery[i])|0;
+      	el('history-'+i).style.height = barHeight + 'px';
+      	el('history-'+i).style.marginTop = (92-barHeight) + 'px';
+      }
+		}
+
+		function renderDigits(ctx, d, spacing ) {
+      ctx.save()
+      for (var i=0,l=3; i<l; i++) {
+        if (i-(3-d.length)>=0) { digit(ctx,d.charAt(i-(3-d.length))); ctx.fill(); }
+        ctx.translate(spacing,0);
+      }
+      ctx.restore();
+		}
+
+		var DIGITS = [63,6,91,79,102,109,125,7,127,111]
+    function digit(ctx,d) {
+      ctx.save();
+      ctx.beginPath();
+      if (DIGITS[d] & 1)
+        Path(ctx,5,88).arc(5,91,8,91,3).line(45,91).arc(47,91,47,89,2).line(47,80).line(13,80).line(5,88); 
+      if (DIGITS[d] & 2)
+        Path(ctx,50,87).arc(50,92,54,88,2).line(58,84).arc(61,81,61,79,5).line(61,55).line(56,49).line(50,55).line(50,87);
+      if (DIGITS[d] & 4)
+        Path(ctx,50,38).line(56,43).line(61,39).line(61,13).arc(61,11,58,6,5).line(54,4).arc(50,0,50,5,2).line(50,38);
+      if (DIGITS[d] & 8)
+        Path(ctx,8,3).line(15,11).line(47,11).line(47,2).arc(47,0,45,0,2).line(11,0).line(8,3);
+      if (DIGITS[d] & 16)
+        Path(ctx,0,13).line(0,39).line(5,44).line(11,38).line(11,12).line(5,6).line(0,13);
+      if (DIGITS[d] & 32)
+        Path(ctx,0,54).line(0,82).line(3,85).line(11,77).line(11,56).line(5,49).line(0,53);
+      if (DIGITS[d] & 64)
+        Path(ctx,12,51).line(49,51).line(53,46).line(46,40).line(14,40).line(8,46);
+      ctx.closePath();
+      ctx.restore();
+    }
+
+    function cross( ctx, incorrect ) {
+    	var r = 30, ow=180, iw=30;
+
+    	ctx.save(); ctx.beginPath(); 
+    	ctx.rotate(Math.PI/4);
+    	
+    	var path = Path(ctx,ow-r,iw);
+    	for (var i=0; i < 4; i++ ) {
+    		path.line(iw,iw).line(iw,ow-r).arc(iw,ow,iw-r,ow,r).line(-iw+r,ow).arc(-iw,ow,-iw,ow-r,r);
+    		ctx.rotate(Math.PI/2);
+    	}
+
+      if ( incorrect ) {
+	      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 15; ctx.shadowColor = '#f30';
+	      var gradient = ctx.fillStyle = ctx.createRadialGradient(0, 0, 130, 0, 0, 0);  
+				gradient.addColorStop(0, "rgb(180, 20, 30)"); gradient.addColorStop(1, "rgb(255, 190, 90)");  
+				ctx.fill();				
+				ctx.strokeStyle = 'rgba(255,0,0,.4)'; ctx.lineWidth=3;
+				ctx.stroke();
+			} else {
+				ctx.fillStyle = 'rgba(0,0,0,.2)';
+				ctx.fill();
+			}
+
+    	ctx.restore();
+    }
+
+    function check( ctx, correct ) {
+    	var r = 25, lw=200, sw=120, iw=75;
+
+    	ctx.save(); ctx.beginPath(); 
+    	ctx.rotate(-Math.PI/4);
+    	
+    	Path(ctx,sw,-lw+r).line(sw,lw-r).arc(sw,lw,sw-r,lw,r).line(sw-iw+r,lw).arc(sw-iw,lw,sw-iw,lw-r,r)
+    		.line(sw-iw,-lw+iw+r).arc(sw-iw,-lw+iw,sw-iw-r,-lw+iw,r).line(-sw+r,-lw+iw).arc(-sw,-lw+iw,-sw,-lw+iw-r,r)
+    		.line(-sw,-lw+r).arc(-sw,-lw,-sw+r,-lw,r).line(sw-r,-lw).arc(sw,-lw,sw,-lw+r,r);
+    	
+
+      if ( correct ) {
+	      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 5; ctx.shadowColor = '#0f0';
+	      var gradient = ctx.fillStyle = ctx.createRadialGradient(0, 0, 150, 0, 0, 0);  
+				gradient.addColorStop(0, "rgb(20, 255, 40)"); gradient.addColorStop(1, "rgb(200, 255, 90)");  
+				ctx.fill();				
+				ctx.strokeStyle = 'rgba(0,175,30,1)'; ctx.lineWidth=5;
+				ctx.stroke();
+			} else {
+				ctx.fillStyle = 'rgba(0,0,0,.2)';
+				ctx.fill();
+			}
+
+    	ctx.restore();
+    }
+
+    function Path(ctx, x, y ) {
+      var cp = {};
+      ctx.moveTo(x,y);
+      cp.line = function(x,y) { ctx.lineTo(x,y); return cp; }
+      cp.arc = function(x1,y1,x2,y2,r) { ctx.arcTo(x1,y1,x2,y2,r); return cp; }
+      return cp;
+    }
+
+		// Animation
+		function splinef( x1, y1, x2, y2 ) {
+		 var ax=3*x1-3*x2+1, bx=-6*x1+3*x2, cx=3*x1, a=3*y1-3*y2+1, b=-6*y1+3*y2, c=3*y1;
+		 return function(x) {
+		   var t=0,t2=0,dt=-x;
+		   while (Math.abs(dt) > .0001) { t-=dt;t2=t*t;dt=(x-t*cx-t2*bx-t2*t*ax) / (-3*t2*ax-2*t*bx-cx); }
+		   return a*t2*t + b*t2 + c*t;
+		 };
+		}
+		var BOUNCE_EASING = splinef( .5, .3, .95, 1.5 );
+
+		function timed_animation( start, end, animation, easing ) {
+		 var state = 0, duration = end-start;
+		 return function( t ) {
+		   if ( t < start ) {  if (state != 1) animation(0); state = 1; return; }
+		   if ( t >= end ) {  if (state != 3) animation(1); state = 3; return; }
+		   animation( easing( (t-start)/duration ) );
+		   state = 2;
+		 }
+		}
+
+		function interpolate_pixels( style, prop, from, to ) {
+		 return function(fraction) { style[prop] = ((from + (to-from)*fraction)|0) + 'px'; }
+		}
+
+		function ComplexAnimation( fps, animations, duration ) {
+		 var animations = animations || [], duration = duration || 0;
+		 return {
+		   add : function( start, end, id, prop, from, to, easing ) {
+		     if ( end > duration ) duration = end;
+		     animations.push( timed_animation( start, end,
+		       interpolate_pixels( document.getElementById(id).style, prop, from, to ), easing ) );
+		   },
+		   duration : function() { return duration; },
+		   start : function( onComplete ) {
+		     var startTime = new Date().getTime();
+		     var interval = setInterval( function() {
+		       var currentTime = (new Date().getTime() - startTime) / 1000;
+		       for ( var i=0,animation; animation = animations[i]; i++ ) animation(currentTime);
+		       if ( currentTime > duration ) {
+		         clearInterval(interval);
+		         if ( onComplete ) onComplete();
+		       }
+		     }, ((1000/fps)|0) );
+		   },
+		   clone : function() { return ComplexAnimation(animations.slice(), duration); }
+		 }
+		}
+
+		function Chooser() {
+			var choices=[], weights=[0], totalWeight=0, allpublic={};
+
+			var add = allpublic.add = function( obj, weight ) {
+				choices.push(obj);
+				weights.push( totalWeight += weight );
+				return allpublic;
+			}
+
+			var choose = allpublic.choose = function() {
+				if ( choices.length == 0 )
+					return null;
+				var choice = Math.random() * totalWeight, start=0, end=weights.length-1, next;
+				while ( end > start + 1 ) {
+				    next=start+Math.floor((end - start)/2);
+					if ( choice >= weights[next] )
+						start = next;
+					else
+						end = next;
+				}
+				return choices[start];
+			}	
+			return allpublic;
+		}
+	</script>
+</head>
+<body onload="init()">
+	<div id="layout">
+		<div id="problem-container">
+			<div id="problem-screen" class="screen"></div>
+			<div id="help-0" class="help">
+				<h1>Addition</h1>
+				<h2><span id="profile"></span></h2>
+				<p>Press <strong>space</strong> to resume the test.</p>
+				<p>Press <strong>space</strong> again to pause the test.</p>
+				<p>Press <strong>down</strong> for more help.</p>
+			</div>
+			<div id="help-1" class="help">
+			  <p class="text">When testing, the problem will appear here and the answer will appear to the right. The answer you type will be
+			     accepted as soon as it is correct. The grid in the bottom center contains a dot for each problem, which will illuminate
+			     as the problem is mastered. The percentage on the bottom right is the total mastery, and the graph on the bottom left
+			     shows mastery over time.</p>
+				<p>Press <strong>down</strong> for more help.</p>
+			</div>
+			<div id="help-2" class="help">
+			  <p class="text">If you leave this page, your stats will be saved. They will only be available to this browser on this computer,
+			   	 however. You may save stats for multiple people by adding a hash tag to the URL above. For example, .../table.html#ada will
+			   	 store stats for Ada. You may then change it to .../table.html#alex to switch to a different student. Typing #ada again
+			   	 will return to Ada's stats.</p>
+				<p>Press <strong>down</strong> to return.</p>
+			</div>
+		</div>		
+		<div id="answer-container">
+			<div id="answer-screen" class="screen dim"></div>
+			<canvas id="answer" width="200" height="150"></canvas>
+			<div id="timer-back"></div>
+			<div id="timer"></div>
+		</div>
+		<div id="stats-container">
+			<div id="history-container">
+				<div id="history-screen" class="screen"></div>
+				<div id="history-back"></div>
+				<div id="history"></div>
+			</div>
+			<div id="mastery-chart-container">
+				<div id="mastery-chart-screen" class="screen"></div>
+				<div id="chart-back"></div>
+				<div id="chart"></div>
+			</div>
+			<div id="mastery-container">
+				<div id="mastery-screen" class="screen"></div>
+				<canvas id="mastery" width="200" height="110"></canvas>
+			</div>
+		</div>
+	</div>
+	<div id="focus-warning">This window is not selected. Click here to enable keyboard.</div>
+	<input type="text" id="clicktrap"/>
+</body>
+</html>
