@@ -8,14 +8,14 @@
 			height: 100%;
 		}
 		body {
-			background: -webkit-linear-gradient(45deg,  #cde 0%,#345 100%); 
-			background: -moz-linear-gradient(45deg,  #cde 0%,#345 100%); 
+			background: -webkit-linear-gradient(45deg,  #cde 0%,#345 100%);
+			background: -moz-linear-gradient(45deg,  #cde 0%,#345 100%);
 		}
 
 		#message { height: 40px;}
 
 		#layout {
-			width: 574px;
+			width: 578px;
 			margin: 60px auto;
 		}
 
@@ -65,8 +65,8 @@
 			height: 198px;
 		}
 
-		#answer-screen { 
-			opacity: .4; 
+		#answer-screen {
+			opacity: .4;
 			height: 198px;
 			width: 198px;
 		}
@@ -80,8 +80,8 @@
 			overflow: hidden;
 			border: 1px solid #234;
 			float: left;
-			background: -webkit-linear-gradient(#123 0%,#468 100%); 
-			background: -moz-linear-gradient(#123 0%,#468 100%); 
+			background: -webkit-linear-gradient(#123 0%,#468 100%);
+			background: -moz-linear-gradient(#123 0%,#468 100%);
 			margin-bottom: 10px;
 		}
 
@@ -92,7 +92,7 @@
 
 		#stats-container {
 			position: relative;
-			width: 572px;
+			width: 576px;
 			height: 110px;
 		}
 
@@ -107,12 +107,12 @@
 			position: relative;
 			overflow: hidden;
 			border: 1px solid rgba(34,52,68,1);
-			background: -webkit-linear-gradient(#456 0%,#468 100%); 
-			background: -moz-linear-gradient(#456 0%,#468 100%); 
+			background: -webkit-linear-gradient(#456 0%,#468 100%);
+			background: -moz-linear-gradient(#456 0%,#468 100%);
 		}
 
-		#mastery-screen, #mastery-chart-screen, #history-screen { 
-			opacity: .1; 
+		#mastery-screen, #mastery-chart-screen, #history-screen {
+			opacity: .1;
 			height: 108px;
 			width: 300px;
 		}
@@ -213,7 +213,7 @@
 
 		.help {
 			font: Georgia,serif;
-			font-size: 14px;			
+			font-size: 14px;
 			text-align: center;
 			padding-top: 25px;
 			color: #443;
@@ -270,12 +270,13 @@
 			top: 0;
 			bottom: 0;
 			left: 0;
-			right: 0;
+			width: 100%;
 			background: none;
 			border: none;
 			margin: 0;
 			padding: 0;
 			color: rgba(0,0,0,0);
+			outline: none;
 		}
 
 		strong { font-weight: bold; }
@@ -301,7 +302,7 @@
 		var profile;
 		var lastHash;
 
-		 
+
 		/*  TODO:
 			set difficulty (time) with: #level[n]:[name] ?
 		  Correct and incorrect sounds
@@ -332,7 +333,7 @@
 				for ( var j=0; j<=MAX_FACTOR; j++ ) {
 					var point = document.createElement('SPAN'); point.id='chart-'+i+'-'+j; row.appendChild(point);
 					point = document.createElement('SPAN'); rowback.appendChild(point);
-				} 
+				}
 				el('chart').appendChild( row );
 				el('chart-back').appendChild( rowback );
 			}
@@ -344,14 +345,16 @@
 			}
 
 			reset();
+
+			el('clicktrap').focus();
 		}
 
 		function reset() {
 			// load or create stats
 			profile = (document.location.hash || ( window.localStorage && localStorage.lastProfile ) || 'default').replace('#','');
 			if ( profile.match(/^clear:/) ) {
-				profile = profile.match(/^clear:(.*)$/)[1]; 
-				if ( window.localStorage ) delete localStorage['stats-'+profile];				
+				profile = profile.match(/^clear:(.*)$/)[1];
+				if ( window.localStorage ) delete localStorage['stats-'+profile];
 			}
 			if ( window.localStorage && localStorage['stats-'+profile] ) {
 			 	currentStats = JSON.parse(localStorage['stats-'+profile]);
@@ -380,7 +383,7 @@
 			window.focus();
 		}
 
-		function handleKey( event ) {	
+		function handleKey( event ) {
 			event = event || window.event;
 			var code = event.keyCode || event.which;
 
@@ -402,10 +405,10 @@
 				pageHelp();
 				return false;
 			}
-			return true;	
+			return true;
 		}
 
-		function togglePause() {			
+		function togglePause() {
 			if ( paused ) {
 				nextProblem();
 				paused = false;
@@ -438,7 +441,7 @@
 
 			if ( paused )
 				flipCards( 'help-'+helpIndex, newProblem.id );
-			else 
+			else
 				flipCards( previousProblemId, newProblem.id, function() { remove(previousProblemId); } );
 
 			answer = '';
@@ -520,7 +523,7 @@
 		function stopTimer() {
 			for ( var i=0, e=el('timer-'+i); e=el('timer-'+i); i++ ) e.style.opacity=0;
 			clearInterval( timerInterval );
-			timerInterval = null;			
+			timerInterval = null;
 		}
 
 		function renderAnswer( correct ) {
@@ -540,11 +543,11 @@
 
       ctx.restore();
 
-      ctx.save(); ctx.translate( 155, 33 ); ctx.scale( .10, -.10 ); 
+      ctx.save(); ctx.translate( 155, 33 ); ctx.scale( .10, -.10 );
       cross(ctx, correct === false );
       ctx.restore();
 
-      ctx.save(); ctx.translate( 55, 27 ); ctx.scale( .092, -.092 ); 
+      ctx.save(); ctx.translate( 55, 27 ); ctx.scale( .092, -.092 );
       check(ctx, correct === true );
       ctx.restore();
 		}
@@ -593,7 +596,7 @@
       ctx.save();
       ctx.beginPath();
       if (DIGITS[d] & 1)
-        Path(ctx,5,88).arc(5,91,8,91,3).line(45,91).arc(47,91,47,89,2).line(47,80).line(13,80).line(5,88); 
+        Path(ctx,5,88).arc(5,91,8,91,3).line(45,91).arc(47,91,47,89,2).line(47,80).line(13,80).line(5,88);
       if (DIGITS[d] & 2)
         Path(ctx,50,87).arc(50,92,54,88,2).line(58,84).arc(61,81,61,79,5).line(61,55).line(56,49).line(50,55).line(50,87);
       if (DIGITS[d] & 4)
@@ -613,9 +616,9 @@
     function cross( ctx, incorrect ) {
     	var r = 30, ow=180, iw=30;
 
-    	ctx.save(); ctx.beginPath(); 
+    	ctx.save(); ctx.beginPath();
     	ctx.rotate(Math.PI/4);
-    	
+
     	var path = Path(ctx,ow-r,iw);
     	for (var i=0; i < 4; i++ ) {
     		path.line(iw,iw).line(iw,ow-r).arc(iw,ow,iw-r,ow,r).line(-iw+r,ow).arc(-iw,ow,-iw,ow-r,r);
@@ -624,9 +627,9 @@
 
       if ( incorrect ) {
 	      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 15; ctx.shadowColor = '#f30';
-	      var gradient = ctx.fillStyle = ctx.createRadialGradient(0, 0, 130, 0, 0, 0);  
-				gradient.addColorStop(0, "rgb(180, 20, 30)"); gradient.addColorStop(1, "rgb(255, 190, 90)");  
-				ctx.fill();				
+	      var gradient = ctx.fillStyle = ctx.createRadialGradient(0, 0, 130, 0, 0, 0);
+				gradient.addColorStop(0, "rgb(180, 20, 30)"); gradient.addColorStop(1, "rgb(255, 190, 90)");
+				ctx.fill();
 				ctx.strokeStyle = 'rgba(255,0,0,.4)'; ctx.lineWidth=3;
 				ctx.stroke();
 			} else {
@@ -640,19 +643,19 @@
     function check( ctx, correct ) {
     	var r = 25, lw=200, sw=120, iw=75;
 
-    	ctx.save(); ctx.beginPath(); 
+    	ctx.save(); ctx.beginPath();
     	ctx.rotate(-Math.PI/4);
-    	
+
     	Path(ctx,sw,-lw+r).line(sw,lw-r).arc(sw,lw,sw-r,lw,r).line(sw-iw+r,lw).arc(sw-iw,lw,sw-iw,lw-r,r)
     		.line(sw-iw,-lw+iw+r).arc(sw-iw,-lw+iw,sw-iw-r,-lw+iw,r).line(-sw+r,-lw+iw).arc(-sw,-lw+iw,-sw,-lw+iw-r,r)
     		.line(-sw,-lw+r).arc(-sw,-lw,-sw+r,-lw,r).line(sw-r,-lw).arc(sw,-lw,sw,-lw+r,r);
-    	
+
 
       if ( correct ) {
 	      ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; ctx.shadowBlur = 5; ctx.shadowColor = '#0f0';
-	      var gradient = ctx.fillStyle = ctx.createRadialGradient(0, 0, 150, 0, 0, 0);  
-				gradient.addColorStop(0, "rgb(20, 255, 40)"); gradient.addColorStop(1, "rgb(200, 255, 90)");  
-				ctx.fill();				
+	      var gradient = ctx.fillStyle = ctx.createRadialGradient(0, 0, 150, 0, 0, 0);
+				gradient.addColorStop(0, "rgb(20, 255, 40)"); gradient.addColorStop(1, "rgb(200, 255, 90)");
+				ctx.fill();
 				ctx.strokeStyle = 'rgba(0,175,30,1)'; ctx.lineWidth=5;
 				ctx.stroke();
 			} else {
@@ -741,7 +744,7 @@
 						end = next;
 				}
 				return choices[start];
-			}	
+			}
 			return allpublic;
 		}
 	</script>
@@ -771,7 +774,7 @@
 			   	 will return to Ada's stats.</p>
 				<p>Press <strong>down</strong> to return.</p>
 			</div>
-		</div>		
+		</div>
 		<div id="answer-container">
 			<div id="answer-screen" class="screen dim"></div>
 			<canvas id="answer" width="200" height="150"></canvas>
